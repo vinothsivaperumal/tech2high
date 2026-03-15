@@ -6,12 +6,9 @@ APP_DIR="${APP_DIR:-/var/www/tech2high}"
 REPO_URL="${REPO_URL:-https://github.com/vinothsivaperumal/tech2high.git}"
 BRANCH="${BRANCH:-main}"
 RUN_SCHEMA_SYNC="${RUN_SCHEMA_SYNC:-false}"
+SKIP_GIT="${SKIP_GIT:-false}"
 
 mkdir -p "$APP_DIR"
-
-if [ ! -d "$APP_DIR/.git" ]; then
-  git clone --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
-fi
 
 cd "$APP_DIR"
 
@@ -21,9 +18,16 @@ if [ ! -f .env ]; then
   exit 1
 fi
 
-git fetch origin
-git checkout "$BRANCH"
-git pull --ff-only origin "$BRANCH"
+if [ "$SKIP_GIT" != "true" ]; then
+  if [ ! -d "$APP_DIR/.git" ]; then
+    git clone --branch "$BRANCH" "$REPO_URL" "$APP_DIR"
+    cd "$APP_DIR"
+  fi
+
+  git fetch origin
+  git checkout "$BRANCH"
+  git pull --ff-only origin "$BRANCH"
+fi
 
 npm ci
 npm run build

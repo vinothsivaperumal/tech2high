@@ -10,7 +10,7 @@ if command -v apt-get >/dev/null 2>&1; then
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   sudo apt-get install -y nodejs
 elif command -v dnf >/dev/null 2>&1; then
-  sudo dnf install -y curl git gcc-c++ make postgresql
+  sudo dnf install -y curl git gcc-c++ make postgresql15
   curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
   sudo dnf install -y nodejs
 else
