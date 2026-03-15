@@ -1,0 +1,19 @@
+{
+  "name": "tech2high-portal",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace apps/api",
+    "dev:web": "npm run dev --workspace apps/web",
+    "dev": "npm run dev:api & npm run dev:web",
+    "build": "npm run build --workspace apps/api && npm run build --workspace apps/web",
+    "start:api": "npm run start --workspace apps/api",
+    "start:web": "npm run start --workspace apps/web",
+    "migrate": "npm run migrate --workspace apps/api",
+    "deploy:sql:manual": "./deploy/scripts/deploy-sql.sh"
+  }
+}
