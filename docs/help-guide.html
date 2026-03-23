@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech2High Portal — Help Guide</title>
+<style>
+  :root { --accent: #059669; --bg: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --section-bg: #f8fafc; --card-bg: #f0fdf4; --step-bg: #ecfdf5; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.7; padding: 2rem; max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: var(--accent); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.5rem; color: var(--accent); margin: 2rem 0 0.75rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+  h3 { font-size: 1.2rem; margin: 1.25rem 0 0.5rem; color: #334155; }
+  h4 { font-size: 1.05rem; margin: 1rem 0 0.4rem; color: #475569; }
+  p, li { font-size: 0.95rem; margin-bottom: 0.5rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: var(--section-bg); font-weight: 600; }
+  code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; }
+  .cover { text-align: center; padding: 3rem 1rem; border-bottom: 3px solid var(--accent); margin-bottom: 2rem; }
+  .cover h1 { border: none; font-size: 2.5rem; }
+  .cover .sub { color: var(--muted); font-size: 1.1rem; margin-top: 0.5rem; }
+  .toc { background: var(--section-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin-bottom: 0; }
+  .toc li { margin-bottom: 0.25rem; }
+  .step-box { background: var(--step-bg); border: 1px solid #a7f3d0; border-radius: 8px; padding: 1rem 1.25rem; margin: 0.75rem 0; }
+  .step-box strong { color: var(--accent); }
+  .tip { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+  .tip::before { content: "💡 Tip: "; font-weight: 700; color: #d97706; }
+  .warn { background: #fef2f2; border: 1px solid #fca5a5; border-radius: 8px; padding: 0.75rem 1rem; margin: 0.75rem 0; }
+  .warn::before { content: "⚠️ Note: "; font-weight: 700; color: #dc2626; }
+  .icon-card { display: flex; gap: 1rem; align-items: flex-start; background: var(--card-bg); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; border: 1px solid #bbf7d0; }
+  .icon-card .icon { font-size: 2rem; flex-shrink: 0; }
+  .icon-card .desc h4 { margin-top: 0; }
+  .nav-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 0.75rem; margin: 1rem 0; }
+  .nav-item { background: var(--section-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+  .nav-item .icon { font-size: 1.5rem; margin-bottom: 0.4rem; }
+  .nav-item strong { display: block; margin-bottom: 0.25rem; }
+  .nav-item p { font-size: 0.82rem; color: var(--muted); margin: 0; }
+  .faq { border: 1px solid var(--border); border-radius: 8px; margin: 0.5rem 0; overflow: hidden; }
+  .faq summary { padding: 0.75rem 1rem; cursor: pointer; font-weight: 600; background: var(--section-bg); }
+  .faq summary:hover { background: #f1f5f9; }
+  .faq .answer { padding: 0.75rem 1rem; }
+  @media print { body { padding: 0.5rem; } .cover { padding: 1rem; } }
+  .role-tag { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 99px; font-size: 0.72rem; font-weight: 700; }
+  .role-student { background: #dbeafe; color: #1d4ed8; }
+  .role-trainer { background: #fef3c7; color: #92400e; }
+  .role-admin { background: #fce7f3; color: #9d174d; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>📖 Tech2High Portal — Help Guide</h1>
+  <p class="sub">Complete User Manual for Students, Trainers & Administrators</p>
+  <p style="margin-top:1rem;font-size:0.9rem;color:var(--muted);">Version 1.0 &nbsp;|&nbsp; portal.tech2high.com &nbsp;|&nbsp; March 2026</p>
+</div>
+
+<!-- TOC -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#getting-started">Getting Started</a></li>
+    <li><a href="#student-guide">Student Guide</a></li>
+    <li><a href="#trainer-guide">Trainer Guide</a></li>
+    <li><a href="#admin-guide">Admin Guide</a></li>
+    <li><a href="#resume-builder">ATS Resume Builder & DOCX Download</a></li>
+    <li><a href="#business-context">Business Context & Project Assignment</a></li>
+    <li><a href="#settings">Settings & Customization</a></li>
+    <li><a href="#faq">Frequently Asked Questions</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+    <li><a href="#contact">Contact & Support</a></li>
+  </ol>
+</div>
+
+<!-- 1. GETTING STARTED -->
+<h2 id="getting-started">1. Getting Started</h2>
+
+<h3>1.1 Accessing the Portal</h3>
+<div class="nav-grid">
+  <div class="nav-item">
+    <div class="icon">🎓</div>
+    <strong>Student Login</strong>
+    <p>portal.tech2high.com/login</p>
+  </div>
+  <div class="nav-item">
+    <div class="icon">👨‍🏫</div>
+    <strong>Trainer Login</strong>
+    <p>portal.tech2high.com/trainer/login</p>
+  </div>
+  <div class="nav-item">
+    <div class="icon">🛡️</div>
+    <strong>Admin Login</strong>
+    <p>portal.tech2high.com/admin/login</p>
+  </div>
+</div>
+
+<h3>1.2 Creating an Account</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Navigate to your role-specific login page.<br>
+  <strong>Step 2:</strong> Click <strong>"Register"</strong> to switch to the registration form.<br>
+  <strong>Step 3:</strong> Fill in your details:
+  <ul>
+    <li><strong>Email</strong> — Your email address (must be unique)</li>
+    <li><strong>Password</strong> — Minimum 6 characters</li>
+    <li><strong>Full Name</strong> — Your full legal name</li>
+    <li><strong>Phone</strong> — Contact number</li>
+    <li><strong>Location</strong> — Country, State, City (auto-detected from your IP, editable)</li>
+    <li><strong>Institute</strong> — Your educational institution</li>
+    <li><strong>Experience Level</strong> — Your current skill level</li>
+  </ul>
+  <strong>Step 4:</strong> Click <strong>"Register"</strong>. You'll be redirected to the login page.
+</div>
+
+<div class="tip">Your location is auto-detected when you visit the registration page. You can manually change it using the dropdown menus.</div>
+
+<h3>1.3 Logging In</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Enter your registered email and password.<br>
+  <strong>Step 2:</strong> Click <strong>"Login"</strong>.<br>
+  <strong>Step 3:</strong> You'll be taken to your role-specific dashboard.
+</div>
+
+<div class="warn">If your account has been deactivated or login is disabled by an admin, you will see an error message. Contact your administrator.</div>
+
+<h3>1.4 Dashboard Navigation</h3>
+<p>The portal uses a <strong>sidebar menu</strong> on the left side of the screen. Click any menu item to switch between sections. The sidebar can be customized in Settings.</p>
+
+<!-- 2. STUDENT GUIDE -->
+<h2 id="student-guide">2. Student Guide</h2>
+<p><span class="role-tag role-student">STUDENT</span></p>
+
+<h3>2.1 Dashboard Overview</h3>
+<p>Your dashboard home shows:</p>
+<ul>
+  <li><strong>Profile Completion Score</strong> — A percentage showing how complete your profile is (12 criteria scored)</li>
+  <li><strong>Enrolled Batches</strong> — Number of batches you're in</li>
+  <li><strong>Your Batches</strong> — List with Zoom meeting links (click to join)</li>
+</ul>
+
+<h3>2.2 Menu Sections</h3>
+<div class="nav-grid">
+  <div class="nav-item"><div class="icon">📊</div><strong>Overview</strong><p>Dashboard home with stats</p></div>
+  <div class="nav-item"><div class="icon">📚</div><strong>Courses</strong><p>Access training content</p></div>
+  <div class="nav-item"><div class="icon">📝</div><strong>Assignments</strong><p>View & submit work</p></div>
+  <div class="nav-item"><div class="icon">🎥</div><strong>Videos</strong><p>Watch course videos</p></div>
+  <div class="nav-item"><div class="icon">📄</div><strong>Materials</strong><p>Download resources</p></div>
+  <div class="nav-item"><div class="icon">📋</div><strong>ATS Resume</strong><p>Build & download resume</p></div>
+  <div class="nav-item"><div class="icon">🔑</div><strong>Credentials</strong><p>View DB credentials</p></div>
+  <div class="nav-item"><div class="icon">🌐</div><strong>IP Requests</strong><p>Request IP whitelist</p></div>
+  <div class="nav-item"><div class="icon">💰</div><strong>Payments</strong><p>View payment status</p></div>
+  <div class="nav-item"><div class="icon">📜</div><strong>Agreements</strong><p>View & sign agreements</p></div>
+  <div class="nav-item"><div class="icon">🏆</div><strong>Certifications</strong><p>Track certification status</p></div>
+  <div class="nav-item"><div class="icon">🔔</div><strong>Notifications</strong><p>Messages from trainers/admin</p></div>
+</div>
+
+<h3>2.3 Accessing Courses</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Courses"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> You'll see all courses available to your enrolled batches.<br>
+  <strong>Step 3:</strong> Click a course to expand its <strong>topics</strong>.<br>
+  <strong>Step 4:</strong> Each topic lists YouTube videos — click to watch.
+</div>
+
+<h3>2.4 Submitting Assignments</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Assignments"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> You'll see assignments grouped by batch with due dates.<br>
+  <strong>Step 3:</strong> Click <strong>"Upload"</strong> next to an assignment.<br>
+  <strong>Step 4:</strong> Select your file. Accepted types: <code>.sql</code>, <code>.py</code>, <code>.txt</code>, <code>.xls</code>, <code>.xlsx</code> (max 50 MB).<br>
+  <strong>Step 5:</strong> Wait for the upload to complete. A success message will appear.
+</div>
+
+<div class="warn">Only the file types listed above are accepted. Other file formats will be rejected.</div>
+
+<h3>2.5 Requesting IP Whitelist</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"IP Requests"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Fill in the form: IP address, port number, protocol (TCP/UDP), and reason.<br>
+  <strong>Step 3:</strong> Submit the request. Status starts as <strong>"Pending"</strong>.<br>
+  <strong>Step 4:</strong> Wait for admin approval. Once approved, your IP is automatically added to the server firewall.
+</div>
+
+<div class="tip">Your current IP address is often auto-detected. Make sure it matches where you'll connect from.</div>
+
+<h3>2.6 Viewing Credentials</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Credentials"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> You'll see database credentials assigned to your batches/courses.<br>
+  <strong>Step 3:</strong> Click <strong>"Reveal Password"</strong> to show the password. This action is logged for security.
+</div>
+
+<h3>2.7 Payments & Agreements</h3>
+<ul>
+  <li><strong>Payments</strong> — View your payment history, amounts, due dates, and status (pending/partial/paid/overdue).</li>
+  <li><strong>Agreements</strong> — View training agreements. Click <strong>"Sign"</strong> to digitally sign an agreement sent by admin.</li>
+</ul>
+
+<!-- 3. TRAINER GUIDE -->
+<h2 id="trainer-guide">3. Trainer Guide</h2>
+<p><span class="role-tag role-trainer">TRAINER</span></p>
+
+<h3>3.1 Dashboard Overview</h3>
+<p>Your dashboard home shows per-batch statistics:</p>
+<ul>
+  <li>Total batches, students, assignments, and materials</li>
+  <li>Per-batch cards with student count, assignment count, video count, submission count</li>
+  <li>Quick Zoom meeting join buttons</li>
+</ul>
+
+<h3>3.2 Menu Sections</h3>
+<div class="nav-grid">
+  <div class="nav-item"><div class="icon">📊</div><strong>Overview</strong><p>Batch insights dashboard</p></div>
+  <div class="nav-item"><div class="icon">📦</div><strong>Batch Manager</strong><p>Create & manage batches</p></div>
+  <div class="nav-item"><div class="icon">📝</div><strong>Assignments</strong><p>Create & grade per batch</p></div>
+  <div class="nav-item"><div class="icon">🎥</div><strong>Course Videos</strong><p>YouTube videos per batch</p></div>
+  <div class="nav-item"><div class="icon">📎</div><strong>Batch Materials</strong><p>Upload files & links</p></div>
+  <div class="nav-item"><div class="icon">🏢</div><strong>Student Projects</strong><p>Assign real-world projects</p></div>
+  <div class="nav-item"><div class="icon">📚</div><strong>Courses</strong><p>View course structure</p></div>
+  <div class="nav-item"><div class="icon">📄</div><strong>All Materials</strong><p>Browse all materials</p></div>
+  <div class="nav-item"><div class="icon">🔑</div><strong>Credentials</strong><p>View DB credentials</p></div>
+  <div class="nav-item"><div class="icon">🔔</div><strong>Notifications</strong><p>Send & receive messages</p></div>
+</div>
+
+<h3>3.3 Creating a Batch</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Batch Manager"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Enter a <strong>batch name</strong> (e.g., "SQL Batch - March 2026").<br>
+  <strong>Step 3:</strong> Optionally add a <strong>Zoom meeting link</strong>.<br>
+  <strong>Step 4:</strong> Click <strong>"Create Batch"</strong>.<br>
+  <strong>Step 5:</strong> Your batch appears in the list below. You can update the Zoom link any time.
+</div>
+
+<h3>3.4 Managing Assignments</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Assignments"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Select a batch from the dropdown.<br>
+  <strong>Step 3:</strong> Click <strong>"+ New"</strong> to create an assignment with title, instructions, and optional due date.<br>
+  <strong>Step 4:</strong> View student submissions by clicking the assignment. Download submitted files directly.
+</div>
+
+<h3>3.5 Managing Course Videos</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Course Videos"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Select a batch.<br>
+  <strong>Step 3:</strong> Click <strong>"+ Add Video"</strong> and provide: title, YouTube URL, and optional description.<br>
+  <strong>Step 4:</strong> Videos appear in a card grid. You can edit or delete them.
+</div>
+
+<h3>3.6 Distributing Materials</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Batch Materials"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Select a batch.<br>
+  <strong>Step 3:</strong> Click <strong>"+ Add Material"</strong>. Choose type:
+  <ul>
+    <li><strong>File upload</strong> — PDF, DOC, SQL, ZIP (uploaded to S3)</li>
+    <li><strong>External link</strong> — URL to external resource</li>
+  </ul>
+  <strong>Step 4:</strong> Set title, description, and whether it's <strong>view-only</strong> or downloadable.<br>
+  <strong>Step 5:</strong> Optionally link to a specific course or topic.
+</div>
+
+<h3>3.7 Assigning Projects to Students</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Student Projects"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Select a batch from the dropdown.<br>
+  <strong>Step 3:</strong> Click <strong>"+ Assign Project"</strong>.<br>
+  <strong>Step 4:</strong> Select a <strong>student</strong> from your batch and a <strong>project</strong> (created by admin).<br>
+  <strong>Step 5:</strong> Fill in: role (e.g., "Full Stack Developer"), start date, end date, and description.<br>
+  <strong>Step 6:</strong> Click <strong>"Assign"</strong>. The project will automatically appear on the student's resume.
+</div>
+
+<div class="tip">Projects are created by admins in the Business Context section. You can only assign existing projects to students in your own batches.</div>
+
+<!-- 4. ADMIN GUIDE -->
+<h2 id="admin-guide">4. Admin Guide</h2>
+<p><span class="role-tag role-admin">ADMIN</span></p>
+
+<h3>4.1 Dashboard Overview</h3>
+<p>The admin dashboard provides a global system overview with counts of students, trainers, batches, and programs.</p>
+
+<h3>4.2 Menu Sections</h3>
+<div class="nav-grid">
+  <div class="nav-item"><div class="icon">📊</div><strong>Overview</strong><p>System-wide statistics</p></div>
+  <div class="nav-item"><div class="icon">👥</div><strong>Students</strong><p>Full student management</p></div>
+  <div class="nav-item"><div class="icon">👨‍🏫</div><strong>Trainers</strong><p>Trainer management</p></div>
+  <div class="nav-item"><div class="icon">📦</div><strong>Batch Manager</strong><p>All batches overview</p></div>
+  <div class="nav-item"><div class="icon">🎓</div><strong>Programs</strong><p>Program CRUD</p></div>
+  <div class="nav-item"><div class="icon">📚</div><strong>Courses</strong><p>Course + topic + video</p></div>
+  <div class="nav-item"><div class="icon">🎥</div><strong>Videos</strong><p>Video management</p></div>
+  <div class="nav-item"><div class="icon">💰</div><strong>Payments</strong><p>Invoice management</p></div>
+  <div class="nav-item"><div class="icon">📜</div><strong>Agreements</strong><p>Agreement lifecycle</p></div>
+  <div class="nav-item"><div class="icon">🏆</div><strong>Certifications</strong><p>Issue certificates</p></div>
+  <div class="nav-item"><div class="icon">📋</div><strong>Resumes</strong><p>Review student resumes</p></div>
+  <div class="nav-item"><div class="icon">🔑</div><strong>Credentials</strong><p>DB credential management</p></div>
+  <div class="nav-item"><div class="icon">📄</div><strong>Materials</strong><p>Global material management</p></div>
+  <div class="nav-item"><div class="icon">🏢</div><strong>Business Context</strong><p>Clients + Projects</p></div>
+  <div class="nav-item"><div class="icon">🌐</div><strong>IP Requests</strong><p>Approve/reject whitelist</p></div>
+  <div class="nav-item"><div class="icon">📑</div><strong>Audit Logs</strong><p>Activity trail</p></div>
+  <div class="nav-item"><div class="icon">🔔</div><strong>Notifications</strong><p>Send system messages</p></div>
+</div>
+
+<h3>4.3 Managing Students</h3>
+<div class="step-box">
+  <strong>View all students:</strong> Click "Students" → see list with name, email, batches, status.<br>
+  <strong>Edit student:</strong> Click a student → modify fields like active status, login enabled, notes.<br>
+  <strong>Add to batch:</strong> In student detail → select a batch and click "Add to Batch".<br>
+  <strong>Remove from batch:</strong> Click ✕ next to a batch enrollment.<br>
+  <strong>Deactivate:</strong> Toggle "Active" to disable the account.
+</div>
+
+<h3>4.4 Managing Programs & Courses</h3>
+<div class="step-box">
+  <strong>Create Program:</strong> Programs → + New → enter title, code, duration, category, dates → associate courses.<br>
+  <strong>Create Course:</strong> Courses → + New → enter title, code, level → add topics → add YouTube videos per topic.<br>
+  <strong>Link to Batch:</strong> Programs can be linked to batches during batch creation.
+</div>
+
+<h3>4.5 Approving IP Requests</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"IP Requests"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Review pending requests (student name, IP, port, reason).<br>
+  <strong>Step 3:</strong> Click <strong>"Approve"</strong> to add the IP to the AWS Security Group automatically, or <strong>"Reject"</strong> with a note.<br>
+  <strong>Step 4:</strong> The action is recorded in audit logs.
+</div>
+
+<div class="warn">Approving an IP request immediately modifies the AWS EC2 Security Group. Ensure the IP and port are valid before approving.</div>
+
+<h3>4.6 Managing Credentials</h3>
+<div class="step-box">
+  <strong>Create Credential:</strong> Credentials → + New → fill in type (PostgreSQL/AWS/Snowflake/MSSQL), host, port, database, username, password, region, notes, expiry date.<br>
+  <strong>Assign Access:</strong> Select credential → assign to batch, course, or program. Only students in those scopes can view it.<br>
+  <strong>Toggle Visibility:</strong> Set <code>allow_student_view</code> and <code>allow_trainer_view</code> flags.
+</div>
+
+<h3>4.7 Audit Logs</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"Audit Logs"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> View chronological log of all system actions.<br>
+  <strong>Step 3:</strong> Filter by action type, entity type, or date range.<br>
+  <strong>Step 4:</strong> Each entry shows: timestamp, actor, action, entity, and metadata details.
+</div>
+
+<!-- 5. RESUME BUILDER -->
+<h2 id="resume-builder">5. ATS Resume Builder & DOCX Download</h2>
+<p><span class="role-tag role-student">STUDENT</span></p>
+
+<h3>5.1 Overview</h3>
+<p>The ATS Resume Builder helps you create a professional, Applicant Tracking System-friendly resume. It has three tabs:</p>
+
+<div class="icon-card">
+  <div class="icon">✏️</div>
+  <div class="desc">
+    <h4>Editor Tab</h4>
+    <p>Add and edit your resume content: profile links, education, work experience, skills, and personal projects. Assigned business projects appear automatically and cannot be edited.</p>
+  </div>
+</div>
+
+<div class="icon-card">
+  <div class="icon">👁️</div>
+  <div class="desc">
+    <h4>Preview Tab</h4>
+    <p>See a live preview of how your resume looks. All sections are rendered in a clean, ATS-optimized format with proper headings and formatting.</p>
+  </div>
+</div>
+
+<div class="icon-card">
+  <div class="icon">📥</div>
+  <div class="desc">
+    <h4>DOCX Download Tab</h4>
+    <p>Choose from 5 professionally designed templates and download your resume as a Microsoft Word document (.docx).</p>
+  </div>
+</div>
+
+<h3>5.2 Building Your Resume</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click <strong>"ATS Resume"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> In the <strong>Editor</strong> tab, fill in each section:
+  <ul>
+    <li><strong>Profile</strong> — LinkedIn URL, GitHub URL, portfolio URL, preferred job role, work authorization</li>
+    <li><strong>Education</strong> — Add entries: institution, degree, field of study, start/end year, grade</li>
+    <li><strong>Experience</strong> — Add entries: company, job title, start/end date, description of responsibilities</li>
+    <li><strong>Skills</strong> — Add skills with proficiency level</li>
+    <li><strong>Projects</strong> — Add personal projects: title, description, tech stack, URL</li>
+  </ul>
+  <strong>Step 3:</strong> <strong>Assigned Projects</strong> (marked with a blue border) appear automatically — these are real-world projects assigned by your trainer and are read-only.<br>
+  <strong>Step 4:</strong> Switch to the <strong>Preview</strong> tab to see your formatted resume.<br>
+  <strong>Step 5:</strong> All changes are auto-saved.
+</div>
+
+<h3>5.3 Downloading DOCX Resume</h3>
+<div class="step-box">
+  <strong>Step 1:</strong> Click the <strong>"📥 DOCX"</strong> tab.<br>
+  <strong>Step 2:</strong> Choose a template by clicking one of the 5 cards:<br>
+  <table>
+    <tr><th>Template</th><th>Best For</th><th>Style</th></tr>
+    <tr><td>📜 Classic</td><td>Traditional industries</td><td>Times New Roman, centered header, formal borders</td></tr>
+    <tr><td>🔷 Modern</td><td>Tech & corporate</td><td>Calibri, navy blue accents, clean lines</td></tr>
+    <tr><td>◻️ Minimal</td><td>Maximum ATS compatibility</td><td>Arial, no borders, whitespace-focused</td></tr>
+    <tr><td>🏛 Executive</td><td>Senior positions</td><td>Georgia serif, bold headers, larger sizing</td></tr>
+    <tr><td>🎨 Creative</td><td>Design & marketing</td><td>Calibri, blue accents, modern layout</td></tr>
+  </table>
+  <strong>Step 3:</strong> Optionally update your <strong>Professional Summary</strong> text in the textarea.<br>
+  <strong>Step 4:</strong> Click the green <strong>"📥 Download [Template] DOCX"</strong> button.<br>
+  <strong>Step 5:</strong> The file downloads automatically as <code>resume_[template].docx</code>.
+</div>
+
+<div class="tip">The "Minimal" template is recommended for maximum ATS compatibility. It uses the simplest formatting that parsers handle best.</div>
+
+<h3>5.4 What's Included in the DOCX</h3>
+<ul>
+  <li>✅ Your full name and contact information</li>
+  <li>✅ Professional summary (from the text area)</li>
+  <li>✅ Work experience with company, title, dates, and descriptions</li>
+  <li>✅ <strong>All projects</strong> — both personal AND assigned business projects (merged together)</li>
+  <li>✅ Education history</li>
+  <li>✅ Skills list</li>
+  <li>✅ Preferred role and LinkedIn/GitHub URLs</li>
+</ul>
+
+<!-- 6. BUSINESS CONTEXT -->
+<h2 id="business-context">6. Business Context & Project Assignment</h2>
+
+<h3>6.1 For Admins — Managing Clients & Projects</h3>
+<p><span class="role-tag role-admin">ADMIN</span></p>
+
+<div class="step-box">
+  <strong>Creating a Client:</strong><br>
+  Click <strong>"Business Context"</strong> → <strong>"Clients"</strong> tab → fill in company name, industry, description, logo URL, website → <strong>"Create"</strong>.
+</div>
+
+<div class="step-box">
+  <strong>Creating a Project:</strong><br>
+  Click <strong>"Projects"</strong> tab → fill in title, select client, description, technologies (comma-separated), domain → <strong>"Create"</strong>.
+</div>
+
+<div class="step-box">
+  <strong>Assigning Projects to Students:</strong><br>
+  Click <strong>"Assign to Students"</strong> tab → select student, project, batch → fill in role, start date, end date, description → <strong>"Assign"</strong>.
+</div>
+
+<h3>6.2 For Trainers — Assigning Projects</h3>
+<p><span class="role-tag role-trainer">TRAINER</span></p>
+
+<div class="step-box">
+  <strong>Step 1:</strong> Navigate to <strong>"Student Projects"</strong> in the sidebar.<br>
+  <strong>Step 2:</strong> Select one of your batches.<br>
+  <strong>Step 3:</strong> Click <strong>"+ Assign Project"</strong>.<br>
+  <strong>Step 4:</strong> Choose a student from the batch, select a project, and fill in the details.<br>
+  <strong>Step 5:</strong> Click <strong>"Assign"</strong>. The project now appears on the student's resume automatically.
+</div>
+
+<h3>6.3 For Students — Viewing Assigned Projects</h3>
+<p><span class="role-tag role-student">STUDENT</span></p>
+<p>Assigned projects appear automatically in:</p>
+<ul>
+  <li>The <strong>ATS Resume Builder</strong> editor tab (with a blue left border and "Auto-included in resume" badge)</li>
+  <li>The <strong>Preview</strong> tab (merged with personal projects)</li>
+  <li>The <strong>Downloaded DOCX</strong> resume (included in the Projects section)</li>
+</ul>
+<p>You cannot edit or remove assigned projects — they are managed by your trainer or admin.</p>
+
+<!-- 7. SETTINGS -->
+<h2 id="settings">7. Settings & Customization</h2>
+
+<h3>7.1 Accessing Settings</h3>
+<p>Click <strong>"⚙️ Settings"</strong> at the bottom of the sidebar menu (available for all roles).</p>
+
+<h3>7.2 Available Options</h3>
+<table>
+  <tr><th>Setting</th><th>Options</th><th>Default</th></tr>
+  <tr><td>Theme Color</td><td>Multiple color options</td><td>Blue</td></tr>
+  <tr><td>Font Size</td><td>Small, Medium, Large</td><td>Medium</td></tr>
+  <tr><td>Sidebar Position</td><td>Left, Right</td><td>Left</td></tr>
+  <tr><td>Sidebar Collapsed</td><td>Yes / No</td><td>No</td></tr>
+</table>
+
+<div class="tip">Settings are saved in your browser. If you clear browser data or switch devices, you'll need to reconfigure.</div>
+
+<!-- 8. FAQ -->
+<h2 id="faq">8. Frequently Asked Questions</h2>
+
+<details class="faq">
+  <summary>How do I reset my password?</summary>
+  <div class="answer">Currently, password reset is handled by your administrator. Contact the admin to have your password updated manually.</div>
+</details>
+
+<details class="faq">
+  <summary>Why can't I see any courses or batches?</summary>
+  <div class="answer">You need to be enrolled in a batch by the trainer or admin. Contact your trainer to be added to the appropriate batch.</div>
+</details>
+
+<details class="faq">
+  <summary>What file types can I upload for assignments?</summary>
+  <div class="answer">Accepted file types: <code>.sql</code>, <code>.py</code>, <code>.txt</code>, <code>.xls</code>, <code>.xlsx</code>. Maximum file size is 50 MB.</div>
+</details>
+
+<details class="faq">
+  <summary>How does the IP whitelist work?</summary>
+  <div class="answer">When you submit an IP request, the admin reviews it. If approved, your IP address is automatically added to the AWS EC2 Security Group, allowing your connection to the training servers on the specified port.</div>
+</details>
+
+<details class="faq">
+  <summary>Can I edit projects assigned by my trainer?</summary>
+  <div class="answer">No. Assigned business projects are read-only and managed by your trainer or admin. They are automatically included in your resume. You can add your own personal projects separately.</div>
+</details>
+
+<details class="faq">
+  <summary>Which resume template should I choose?</summary>
+  <div class="answer">
+    <ul>
+      <li><strong>Minimal</strong> — Best for ATS systems (maximum compatibility)</li>
+      <li><strong>Modern</strong> — Great for tech companies</li>
+      <li><strong>Classic</strong> — Best for traditional industries (finance, healthcare)</li>
+      <li><strong>Executive</strong> — Best for senior-level positions</li>
+      <li><strong>Creative</strong> — Best for design/marketing roles</li>
+    </ul>
+  </div>
+</details>
+
+<details class="faq">
+  <summary>How do I access database credentials?</summary>
+  <div class="answer">Go to "Credentials" in the sidebar. You'll see credentials assigned to your batches/courses. Click "Reveal Password" to show the password — this action is logged for security.</div>
+</details>
+
+<details class="faq">
+  <summary>Can I sign an agreement digitally?</summary>
+  <div class="answer">Yes. When an admin sends you an agreement, it will appear in the "Agreements" section with a "Sign" button. Clicking it records your digital signature with timestamp.</div>
+</details>
+
+<details class="faq">
+  <summary>How are notification sent?</summary>
+  <div class="answer">Trainers and admins can send notifications visible in your "Notifications" section. Unread notifications are highlighted. You can mark them as read.</div>
+</details>
+
+<details class="faq">
+  <summary>How do I join a Zoom session?</summary>
+  <div class="answer">Zoom links are displayed on your dashboard overview next to each batch. Click the "📹 Join Zoom" button to open the meeting in a new tab.</div>
+</details>
+
+<!-- 9. TROUBLESHOOTING -->
+<h2 id="troubleshooting">9. Troubleshooting</h2>
+
+<table>
+  <tr><th>Problem</th><th>Possible Cause</th><th>Solution</th></tr>
+  <tr><td>"Login failed" error</td><td>Incorrect credentials or account deactivated</td><td>Verify email/password. Contact admin if account is disabled.</td></tr>
+  <tr><td>Blank dashboard</td><td>Not enrolled in any batch</td><td>Contact your trainer to be added to a batch.</td></tr>
+  <tr><td>File upload rejected</td><td>Wrong file type or too large</td><td>Use .sql, .py, .txt, .xls, or .xlsx files under 50 MB.</td></tr>
+  <tr><td>Can't see credentials</td><td>No credentials assigned to your batch</td><td>Ask your admin to assign credentials to your batch.</td></tr>
+  <tr><td>DOCX download fails</td><td>Server error or network issue</td><td>Check internet connection. Try a different template. Refresh and retry.</td></tr>
+  <tr><td>IP request stays pending</td><td>Admin hasn't reviewed yet</td><td>Contact your admin to review the pending request.</td></tr>
+  <tr><td>Settings not saved</td><td>Browser privacy mode</td><td>Settings use localStorage. Disable incognito mode or manually configure each session.</td></tr>
+  <tr><td>Zoom link not showing</td><td>Trainer hasn't set it</td><td>Ask your trainer to add a Zoom link to the batch.</td></tr>
+  <tr><td>"Unauthorized" error</td><td>JWT token expired</td><td>Log out and log back in to get a fresh token.</td></tr>
+  <tr><td>Profile score low</td><td>Missing profile fields</td><td>Complete all 12 fields: name, email, phone, city, state, country, institute, LinkedIn, GitHub, education, experience, skills.</td></tr>
+</table>
+
+<!-- 10. CONTACT -->
+<h2 id="contact">10. Contact & Support</h2>
+
+<div class="icon-card">
+  <div class="icon">🌐</div>
+  <div class="desc">
+    <h4>Website</h4>
+    <p><a href="https://tech2high.com" target="_blank">tech2high.com</a></p>
+  </div>
+</div>
+
+<div class="icon-card">
+  <div class="icon">📧</div>
+  <div class="desc">
+    <h4>Email Support</h4>
+    <p>Contact your program administrator for technical and account-related issues.</p>
+  </div>
+</div>
+
+<div class="icon-card">
+  <div class="icon">🔔</div>
+  <div class="desc">
+    <h4>In-App Notifications</h4>
+    <p>Use the Notifications section in the portal to send messages to your trainer or admin.</p>
+  </div>
+</div>
+
+<hr style="margin: 2rem 0;">
+<p style="text-align: center; color: var(--muted); font-size: 0.85rem;">
+  Tech2High Portal — Help Guide v1.0 — Generated March 2026
+</p>
+
+</body>
+</html>

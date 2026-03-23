@@ -140,3 +140,37 @@ metaRouter.get("/cities", async (req, res) => {
     res.status(502).json({ message: "Unable to load cities" });
   }
 });
+
+metaRouter.get("/detect-location", async (_req, res) => {
+  try {
+    // Try ip-api.com first (no API key needed, 45 req/min for non-commercial)
+    const primary = await fetch("http://ip-api.com/json/?fields=city,regionName,country");
+    if (primary.ok) {
+      const data = (await primary.json()) as { city?: string; regionName?: string; country?: string };
+      res.json({
+        city: data.city ?? null,
+        state: data.regionName ?? null,
+        country: data.country ?? null,
+      });
+      return;
+    }
+
+    // Fallback to ipapi.co
+    const fallback = await fetch("https://ipapi.co/json/");
+    if (fallback.ok) {
+      const data = (await fallback.json()) as { city?: string; region?: string; country_name?: string };
+      res.json({
+        city: data.city ?? null,
+        state: data.region ?? null,
+        country: data.country_name ?? null,
+      });
+      return;
+    }
+
+    console.error("meta.detect-location: both services returned non-OK", primary.status, fallback.status);
+    res.status(502).json({ message: "Address detection service unavailable" });
+  } catch (error) {
+    console.error("meta.detect-location error", error);
+    res.status(502).json({ message: "Address detection service unavailable" });
+  }
+});

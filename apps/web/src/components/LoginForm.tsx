@@ -38,9 +38,9 @@ interface RoleConfig {
 }
 
 const ROLE_CONFIG: Record<RoleOption, RoleConfig> = {
-  student: { icon: "🎓", label: "Student", color: "#4be2c2" },
-  trainer: { icon: "🏫", label: "Trainer", color: "#ffb347" },
-  admin:   { icon: "🛡",  label: "Admin",   color: "#6dacff" },
+  student: { icon: "🎓", label: "Student", color: "#e94560" },
+  trainer: { icon: "🏫", label: "Trainer", color: "#ff9800" },
+  admin:   { icon: "🛡",  label: "Admin",   color: "#2196f3" },
 };
 
 function getCaseInsensitiveExactMatch(values: string[], typedValue: string): string | null {
@@ -51,9 +51,11 @@ function getCaseInsensitiveExactMatch(values: string[], typedValue: string): str
 
 interface LoginFormProps {
   role: RoleOption;
+  hideBackLink?: boolean;
+  hideRegister?: boolean;
 }
 
-export function LoginForm({ role }: LoginFormProps) {
+export function LoginForm({ role, hideBackLink, hideRegister }: LoginFormProps) {
   const router = useRouter();
   const cfg = ROLE_CONFIG[role];
 
@@ -138,11 +140,9 @@ export function LoginForm({ role }: LoginFormProps) {
     setError("");
     setRegistrationInfo("");
     try {
-      const res = await fetch("https://ipapi.co/json/");
-      if (!res.ok) throw new Error("Address detection service unavailable");
-      const data = (await res.json()) as { city?: string; region?: string; country_name?: string };
-      const detectedCountry = data.country_name?.trim();
-      const detectedState = data.region?.trim();
+      const data = await apiRequest<{ city: string | null; state: string | null; country: string | null }>("/meta/detect-location");
+      const detectedCountry = data.country?.trim();
+      const detectedState = data.state?.trim();
       const detectedCity = data.city?.trim();
       if (detectedCountry) {
         setCountries((cur) => (cur.includes(detectedCountry) ? cur : [detectedCountry, ...cur]));
@@ -191,9 +191,11 @@ export function LoginForm({ role }: LoginFormProps) {
       <div className="aura aura-one" />
       <div className="aura aura-two" />
       <section className="panel" style={{ borderTop: `3px solid ${cfg.color}` }}>
-        <Link href="/login" className="back-link">
-          ← Back to role selection
-        </Link>
+        {!hideBackLink && (
+          <Link href="/login" className="back-link">
+            ← Back to role selection
+          </Link>
+        )}
 
         <div className="login-brand" style={{ justifyContent: "center", marginBottom: 14 }}>
           <Image src="/logo.svg" alt="Tech2High" width={180} height={44} priority className="logo-img" />
@@ -344,18 +346,20 @@ export function LoginForm({ role }: LoginFormProps) {
           </button>
         </form>
 
-        <button
-          className="button secondary"
-          style={{ marginTop: 12, width: "100%" }}
-          onClick={() => {
-            setMode(mode === "login" ? "register" : "login");
-            setError("");
-            setMessage("");
-            setRegistrationInfo("");
-          }}
-        >
-          {mode === "login" ? "Need an account? Register" : "Already have an account? Login"}
-        </button>
+        {!hideRegister && (
+          <button
+            className="button secondary"
+            style={{ marginTop: 12, width: "100%" }}
+            onClick={() => {
+              setMode(mode === "login" ? "register" : "login");
+              setError("");
+              setMessage("");
+              setRegistrationInfo("");
+            }}
+          >
+            {mode === "login" ? "Need an account? Register" : "Already have an account? Login"}
+          </button>
+        )}
       </section>
 
       <footer className="app-footer">

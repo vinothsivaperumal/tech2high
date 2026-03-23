@@ -4,9 +4,9 @@ import Link from "next/link";
 type RoleOption = "student" | "trainer" | "admin";
 
 const ROLE_CONFIG: Record<RoleOption, { icon: string; label: string; color: string; desc: string }> = {
-  student: { icon: "🎓", label: "Student", color: "#4be2c2", desc: "Access courses, assignments & learning resources" },
-  trainer: { icon: "🏫", label: "Trainer", color: "#ffb347", desc: "Manage batches, videos & student progress" },
-  admin:   { icon: "🛡", label: "Admin",   color: "#6dacff", desc: "Full portal control, IP approvals & audit logs" },
+  student: { icon: "🎓", label: "Student", color: "#e94560", desc: "Access courses, assignments & learning resources" },
+  trainer: { icon: "🏫", label: "Trainer", color: "#ff9800", desc: "Manage batches, videos & student progress" },
+  admin:   { icon: "🛡", label: "Admin",   color: "#2196f3", desc: "Full portal control, IP approvals & audit logs" },
 };
 
 export default function LoginPage() {

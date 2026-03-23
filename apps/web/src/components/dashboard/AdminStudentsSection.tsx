@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { apiRequest } from "../../lib/api";
 import { fetchCities, fetchCountries, fetchStates } from "../../lib/geo";
@@ -47,20 +47,8 @@ interface EditForm {
 const EXPERIENCE_LEVEL_OPTIONS = ["Beginner", "Intermediate", "Advanced", "Expert"];
 const ROWS_OPTIONS = [5, 10, 25, 50];
 
-const PROFILE_FIELDS: { key: Exclude<keyof EditForm, "country" | "state" | "city" | "experienceLevel">; label: string }[] = [
-  { key: "fullName", label: "Full Name" },
-  { key: "phone", label: "Phone" },
-  { key: "institute", label: "Institute / Company" }
-];
-
 const BLANK_FORM: EditForm = {
-  fullName: "",
-  phone: "",
-  city: "",
-  state: "",
-  country: "",
-  institute: "",
-  experienceLevel: ""
+  fullName: "", phone: "", city: "", state: "", country: "", institute: "", experienceLevel: ""
 };
 
 function getCaseInsensitiveExactMatch(values: string[], typedValue: string): string | null {
@@ -72,6 +60,10 @@ function getCaseInsensitiveExactMatch(values: string[], typedValue: string): str
 interface SelectedStudent extends AdminStudent {
   ipRequests: StudentIpRequest[];
 }
+
+type SortKey = "full_name" | "email" | "is_active" | "experience_level" | "country";
+type SortDir = "asc" | "desc";
+type DetailTab = "profile" | "ip_requests" | "activity";
 
 export function AdminStudentsSection() {
   const [students, setStudents] = useState<AdminStudent[]>([]);
@@ -85,13 +77,17 @@ export function AdminStudentsSection() {
   const [search, setSearch] = useState("");
   const [filterExp, setFilterExp] = useState<string>("all");
   const [filterCountry, setFilterCountry] = useState<string>("all");
-  const [filterBatch, setFilterBatch] = useState<string>("all");
-  const [filterProgram, setFilterProgram] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
+
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const [showExport, setShowExport] = useState(false);
+  const exportRef = useRef<HTMLDivElement>(null);
 
   const [editForm, setEditForm] = useState<EditForm>(BLANK_FORM);
   const [countries, setCountries] = useState<string[]>([]);
@@ -101,12 +97,20 @@ export function AdminStudentsSection() {
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
 
-  useEffect(() => {
-    void loadStudents();
-    void loadCountries();
-  }, []);
+  const [detailTab, setDetailTab] = useState<DetailTab>("profile");
 
-  useEffect(() => { setPage(1); }, [search, filterExp, filterCountry, filterBatch, filterProgram, filterStatus, pageSize]);
+  // View mode: "list" or "detail"
+  const viewMode = selected || detailLoading ? "detail" : "list";
+
+  useEffect(() => { void loadStudents(); void loadCountries(); }, []);
+  useEffect(() => { setPage(1); }, [search, filterExp, filterCountry, filterStatus, pageSize]);
+  useEffect(() => {
+    function handleClick(e: MouseEvent) {
+      if (exportRef.current && !exportRef.current.contains(e.target as Node)) setShowExport(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
 
   async function loadCountries() {
     setLoadingCountries(true);
@@ -152,7 +156,7 @@ export function AdminStudentsSection() {
   }
 
   async function openStudent(s: AdminStudent) {
-    setDetailLoading(true); setMessage(""); setError("");
+    setDetailLoading(true); setMessage(""); setError(""); setDetailTab("profile");
     try {
       const res = await apiRequest<{ student: AdminStudent; ipRequests: StudentIpRequest[] }>(`/admin/students/${s.id}`);
       const nf: EditForm = { fullName: res.student.full_name ?? "", phone: res.student.phone ?? "", city: res.student.city ?? "", state: res.student.state ?? "", country: res.student.country ?? "", institute: res.student.institute ?? "", experienceLevel: res.student.experience_level ?? "" };
@@ -161,6 +165,13 @@ export function AdminStudentsSection() {
       else { setStates([]); setCities([]); }
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to load student detail"); }
     finally { setDetailLoading(false); }
+  }
+
+  function backToList() { setSelected(null); setMessage(""); setError(""); }
+
+  function resetForm() {
+    if (!selected) return;
+    setEditForm({ fullName: selected.full_name ?? "", phone: selected.phone ?? "", city: selected.city ?? "", state: selected.state ?? "", country: selected.country ?? "", institute: selected.institute ?? "", experienceLevel: selected.experience_level ?? "" });
   }
 
   async function saveStudent(e: FormEvent) {
@@ -196,21 +207,40 @@ export function AdminStudentsSection() {
     } catch (e) { setError(e instanceof Error ? e.message : "Failed to delete student"); }
   }
 
+  function handleSort(key: SortKey) {
+    if (sortKey === key) { setSortDir((d) => d === "asc" ? "desc" : "asc"); }
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  function exportCSV() {
+    const rows = filtered.map((s) => [s.full_name ?? "", s.email, s.is_active ? "Active" : "Inactive", s.batches?.map((b) => b.batch_name).join("; ") ?? "", s.experience_level ?? "", s.country ?? ""].map((v) => `"${v.replace(/"/g, '""')}"`).join(","));
+    const csv = ["Name,Email,Status,Course,Level,Country", ...rows].join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a"); a.href = url; a.download = "students.csv"; a.click();
+    URL.revokeObjectURL(url);
+    setShowExport(false);
+  }
+
   const uniqueCountries = useMemo(() => Array.from(new Set(students.map((s) => s.country).filter(Boolean) as string[])).sort(), [students]);
   const uniqueExpLevels = useMemo(() => Array.from(new Set(students.map((s) => s.experience_level).filter(Boolean) as string[])).sort(), [students]);
-  const uniqueBatches = useMemo(() => { const m = new Map<string, string>(); students.forEach((s) => s.batches?.forEach((b) => m.set(b.batch_id, b.batch_name))); return Array.from(m.entries()).sort((a, b) => a[1].localeCompare(b[1])); }, [students]);
-  const uniquePrograms = useMemo(() => { const m = new Map<string, string>(); students.forEach((s) => s.batches?.forEach((b) => { if (b.program_id && b.program_title) m.set(b.program_id, b.program_title); })); return Array.from(m.entries()).sort((a, b) => a[1].localeCompare(b[1])); }, [students]);
 
   const filtered = useMemo(() => {
     let list = students;
     if (search) { const q = search.toLowerCase(); list = list.filter((s) => s.email.toLowerCase().includes(q) || (s.full_name ?? "").toLowerCase().includes(q) || (s.institute ?? "").toLowerCase().includes(q) || (s.city ?? "").toLowerCase().includes(q)); }
     if (filterExp !== "all") list = list.filter((s) => s.experience_level === filterExp);
     if (filterCountry !== "all") list = list.filter((s) => s.country === filterCountry);
-    if (filterBatch !== "all") list = list.filter((s) => s.batches?.some((b) => b.batch_id === filterBatch));
-    if (filterProgram !== "all") list = list.filter((s) => s.batches?.some((b) => b.program_id === filterProgram));
     if (filterStatus !== "all") list = list.filter((s) => filterStatus === "active" ? s.is_active : !s.is_active);
+    if (sortKey) {
+      list = [...list].sort((a, b) => {
+        const av = (a[sortKey] ?? "").toString().toLowerCase();
+        const bv = (b[sortKey] ?? "").toString().toLowerCase();
+        const cmp = av.localeCompare(bv);
+        return sortDir === "asc" ? cmp : -cmp;
+      });
+    }
     return list;
-  }, [students, search, filterExp, filterCountry, filterBatch, filterProgram, filterStatus]);
+  }, [students, search, filterExp, filterCountry, filterStatus, sortKey, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const safePage = Math.min(page, totalPages);
@@ -218,40 +248,246 @@ export function AdminStudentsSection() {
   const startRow = filtered.length ? (safePage - 1) * pageSize + 1 : 0;
   const endRow = Math.min(safePage * pageSize, filtered.length);
 
-  function clearFilters() { setSearch(""); setFilterExp("all"); setFilterCountry("all"); setFilterBatch("all"); setFilterProgram("all"); setFilterStatus("all"); setPage(1); }
-  const hasActiveFilters = search !== "" || filterExp !== "all" || filterCountry !== "all" || filterBatch !== "all" || filterProgram !== "all" || filterStatus !== "all";
+  function clearFilters() { setSearch(""); setFilterExp("all"); setFilterCountry("all"); setFilterStatus("all"); setPage(1); }
+  const hasActiveFilters = search !== "" || filterExp !== "all" || filterCountry !== "all" || filterStatus !== "all";
 
   const allChecked = paginated.length > 0 && paginated.every((s) => checkedIds.has(s.id));
   function toggleAll() { setCheckedIds((prev) => { const next = new Set(prev); if (allChecked) { paginated.forEach((s) => next.delete(s.id)); } else { paginated.forEach((s) => next.add(s.id)); } return next; }); }
   function toggleOne(id: string) { setCheckedIds((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; }); }
 
-  const filterTags: { label: string; onClear: () => void }[] = [];
-  if (search) filterTags.push({ label: `Search: ${search}`, onClear: () => setSearch("") });
-  if (filterExp !== "all") filterTags.push({ label: `Level: ${filterExp}`, onClear: () => setFilterExp("all") });
-  if (filterCountry !== "all") filterTags.push({ label: `Country: ${filterCountry}`, onClear: () => setFilterCountry("all") });
-  if (filterBatch !== "all") { const name = uniqueBatches.find(([id]) => id === filterBatch)?.[1] ?? filterBatch; filterTags.push({ label: `Batch: ${name}`, onClear: () => setFilterBatch("all") }); }
-  if (filterProgram !== "all") { const name = uniquePrograms.find(([id]) => id === filterProgram)?.[1] ?? filterProgram; filterTags.push({ label: `Program: ${name}`, onClear: () => setFilterProgram("all") }); }
-  if (filterStatus !== "all") filterTags.push({ label: `Status: ${filterStatus}`, onClear: () => setFilterStatus("all") });
+  function SortHeader({ label, sKey }: { label: string; sKey: SortKey }) {
+    const active = sortKey === sKey;
+    return (
+      <span className={`dt-th-sort${active ? " active" : ""}`} onClick={() => handleSort(sKey)}>
+        {label} <span className="dt-sort-icon">{active ? (sortDir === "asc" ? "↑" : "↓") : "⇅"}</span>
+      </span>
+    );
+  }
 
+  // ─── DETAIL VIEW ───
+  if (viewMode === "detail") {
+    return (
+      <div className="detail-page">
+        {error ? <p className="message error">{error}</p> : null}
+        {message ? <p className="message success">{message}</p> : null}
+
+        <div className="detail-page-header">
+          <div>
+            <h2>Student Details</h2>
+            <p>Manage student information and permissions</p>
+          </div>
+          <button type="button" className="detail-back-btn" onClick={backToList}>← Back to List</button>
+        </div>
+
+        {detailLoading ? <p className="muted">Loading student details…</p> : null}
+
+        {!detailLoading && selected ? (
+          <>
+            {/* Profile hero */}
+            <div className="detail-profile-hero">
+              <div className="detail-avatar-large">
+                {(selected.full_name ?? selected.email).charAt(0).toUpperCase()}
+              </div>
+              <div className="detail-hero-info">
+                <h3>{selected.full_name || selected.email}</h3>
+                <div className="detail-hero-email">{selected.email}</div>
+                <div className="detail-hero-meta">
+                  <span className={`dt-badge ${selected.is_active ? "dt-badge-active" : "dt-badge-inactive"}`}>
+                    {selected.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                    Joined: {new Date(selected.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <div className="detail-hero-actions">
+                <button type="button" className="btn-danger" onClick={() => void toggleStudentStatus(selected.id, !selected.is_active)}>
+                  ⊘ {selected.is_active ? "Deactivate" : "Activate"}
+                </button>
+                <button type="button" className="btn-danger" onClick={() => void deleteStudent(selected.id)}>
+                  🗑 Delete
+                </button>
+              </div>
+            </div>
+
+            {/* Tabs */}
+            <div className="detail-tabs">
+              <button type="button" className={`detail-tab${detailTab === "profile" ? " active" : ""}`} onClick={() => setDetailTab("profile")}>Profile</button>
+              <button type="button" className={`detail-tab${detailTab === "ip_requests" ? " active" : ""}`} onClick={() => setDetailTab("ip_requests")}>IP Requests</button>
+              <button type="button" className={`detail-tab${detailTab === "activity" ? " active" : ""}`} onClick={() => setDetailTab("activity")}>Activity</button>
+            </div>
+
+            <div className="detail-layout">
+              {/* Main content */}
+              <div>
+                {detailTab === "profile" ? (
+                  <div className="dt-form-card">
+                    <form onSubmit={(e) => void saveStudent(e)}>
+                      <div className="detail-form-grid">
+                        <label>Full Name
+                          <input value={editForm.fullName} onChange={(ev) => setEditForm((f) => ({ ...f, fullName: ev.target.value }))} />
+                        </label>
+                        <label>Email
+                          <input value={selected.email} disabled style={{ opacity: 0.6 }} />
+                        </label>
+                        <label>Phone
+                          <input value={editForm.phone} onChange={(ev) => setEditForm((f) => ({ ...f, phone: ev.target.value }))} />
+                        </label>
+                        <label>Institution
+                          <input value={editForm.institute} onChange={(ev) => setEditForm((f) => ({ ...f, institute: ev.target.value }))} />
+                        </label>
+                        <div className="triple-col">
+                          <label>Country
+                            <input list="admin-student-country-options" value={editForm.country} onChange={(ev) => { const v = ev.target.value; setEditForm((f) => ({ ...f, country: v, state: "", city: "" })); setStates([]); setCities([]); const m = getCaseInsensitiveExactMatch(countries, v); if (m) void loadStatesForCountry(m); }} placeholder={loadingCountries ? "Loading…" : "Type country"} />
+                            <datalist id="admin-student-country-options">{countries.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
+                          </label>
+                          <label>State
+                            <input list="admin-student-state-options" value={editForm.state} onChange={(ev) => { const v = ev.target.value; setEditForm((f) => ({ ...f, state: v, city: "" })); setCities([]); const mc = getCaseInsensitiveExactMatch(countries, editForm.country); const ms = getCaseInsensitiveExactMatch(states, v); if (mc && ms) void loadCitiesForState(mc, ms); }} placeholder={loadingStates ? "Loading…" : "Type state"} />
+                            <datalist id="admin-student-state-options">{states.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
+                          </label>
+                          <label>City
+                            <input list="admin-student-city-options" value={editForm.city} onChange={(ev) => setEditForm((f) => ({ ...f, city: ev.target.value }))} placeholder={loadingCities ? "Loading…" : "Type city"} />
+                            <datalist id="admin-student-city-options">{cities.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
+                          </label>
+                        </div>
+                        <label>Experience Level
+                          <select value={editForm.experienceLevel} onChange={(ev) => setEditForm((f) => ({ ...f, experienceLevel: ev.target.value }))}>
+                            <option value="">Select Level</option>
+                            {EXPERIENCE_LEVEL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                          </select>
+                        </label>
+                        <label>Course
+                          <input value={selected.batches?.map((b) => `${b.program_title ? b.program_title + " - " : ""}${b.batch_name}`).join(", ") || "—"} disabled style={{ opacity: 0.6 }} />
+                        </label>
+                        <div className="detail-form-actions">
+                          <button type="button" className="btn-reset" onClick={resetForm}>↻ Reset</button>
+                          <button type="submit" className="btn-save" disabled={saving}>{saving ? "Saving…" : "✓ Save Changes"}</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                ) : null}
+
+                {detailTab === "ip_requests" ? (
+                  <div className="dt-form-card">
+                    <h4>IP Request History</h4>
+                    {(selected.ipRequests ?? []).length === 0 ? (
+                      <p className="muted" style={{ fontSize: "0.82rem" }}>No IP requests yet.</p>
+                    ) : (
+                      <ul className="detail-ip-list">
+                        {(selected.ipRequests ?? []).map((r) => (
+                          <li key={r.id} className="detail-ip-item">
+                            <div>
+                              <strong>{r.requested_ip}:{r.port}</strong>
+                              <span className="muted" style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                                {r.protocol.toUpperCase()} · {new Date(r.requested_at).toLocaleString()}
+                              </span>
+                              {r.reason ? <div className="muted" style={{ fontSize: "0.75rem", marginTop: "0.15rem" }}>Reason: {r.reason}</div> : null}
+                              {r.review_note ? <div className="muted" style={{ fontSize: "0.75rem" }}>Review note: {r.review_note}</div> : null}
+                            </div>
+                            <span className={`dt-badge ${r.status === "approved" ? "dt-badge-active" : r.status === "rejected" ? "dt-badge-inactive" : "dt-badge-info"}`}>
+                              {r.status}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : null}
+
+                {detailTab === "activity" ? (
+                  <div className="dt-form-card">
+                    <h4>Activity Log</h4>
+                    <div className="detail-ip-list">
+                      <div className="detail-ip-item">
+                        <div>
+                          <strong>Last updated</strong>
+                          <span className="muted" style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                            {new Date(selected.updated_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="detail-ip-item">
+                        <div>
+                          <strong>Account created</strong>
+                          <span className="muted" style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>
+                            {new Date(selected.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                      {selected.current_ip ? (
+                        <div className="detail-ip-item">
+                          <div>
+                            <strong>Current IP</strong>
+                            <span className="muted" style={{ marginLeft: "0.5rem", fontSize: "0.75rem" }}>{selected.current_ip}</span>
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Right sidebar */}
+              <div>
+                <div className="detail-sidebar-card">
+                  <h4>Quick Stats</h4>
+                  <div className="detail-stat-row">
+                    <span className="detail-stat-label">Batches Enrolled</span>
+                    <span className="detail-stat-value">{selected.batches?.length ?? 0}</span>
+                  </div>
+                  <div className="detail-stat-row">
+                    <span className="detail-stat-label">Experience Level</span>
+                    <span className="detail-stat-value">{selected.experience_level ?? "—"}</span>
+                  </div>
+                  <div className="detail-stat-row">
+                    <span className="detail-stat-label">Last Login</span>
+                    <span className="detail-stat-value">{new Date(selected.updated_at).toLocaleDateString() === new Date().toLocaleDateString() ? "Today" : new Date(selected.updated_at).toLocaleDateString()}</span>
+                  </div>
+                  <div className="detail-stat-row">
+                    <span className="detail-stat-label">Active IP Addresses</span>
+                    <span className="detail-stat-value">{selected.ipRequests?.filter((r) => r.status === "approved").length ?? 0}</span>
+                  </div>
+                </div>
+
+                {/* Batch info card */}
+                {selected.batches?.length ? (
+                  <div className="detail-sidebar-card">
+                    <h4>Enrolled Batches</h4>
+                    {selected.batches.map((b) => (
+                      <div key={b.batch_id} className="detail-stat-row">
+                        <span className="detail-stat-label">{b.batch_name}</span>
+                        <span className="dt-cell-tag">{b.program_title ?? "—"}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </>
+        ) : null}
+      </div>
+    );
+  }
+
+  // ─── LIST VIEW ───
   return (
     <>
       {error ? <p className="message error">{error}</p> : null}
       {message ? <p className="message success">{message}</p> : null}
 
       <div className="dt-container">
-        {/* Header */}
         <div className="dt-header">
-          <h3>Students Management</h3>
+          <h3>Student Management</h3>
           <div className="dt-header-actions">
             <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>{students.length} total</span>
           </div>
         </div>
 
-        {/* Filters */}
         <div className="dt-filters">
           <div className="dt-search">
             <span className="dt-search-icon">🔍</span>
-            <input placeholder="Search name, email, institute, city…" value={search} onChange={(e) => setSearch(e.target.value)} />
+            <input placeholder="Search students…" value={search} onChange={(e) => setSearch(e.target.value)} />
           </div>
           <select className="dt-select" value={filterExp} onChange={(e) => setFilterExp(e.target.value)}>
             <option value="all">All Levels</option>
@@ -261,49 +497,40 @@ export function AdminStudentsSection() {
             <option value="all">All Countries</option>
             {uniqueCountries.map((c) => <option key={c} value={c}>{c}</option>)}
           </select>
-          <select className="dt-select" value={filterBatch} onChange={(e) => setFilterBatch(e.target.value)}>
-            <option value="all">All Batches</option>
-            {uniqueBatches.map(([id, name]) => <option key={id} value={id}>{name}</option>)}
-          </select>
-          <select className="dt-select" value={filterProgram} onChange={(e) => setFilterProgram(e.target.value)}>
-            <option value="all">All Programs</option>
-            {uniquePrograms.map(([id, title]) => <option key={id} value={id}>{title}</option>)}
-          </select>
           <select className="dt-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
             <option value="all">All Status</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
-          {hasActiveFilters ? <button type="button" className="dt-clear-btn" onClick={clearFilters}>✕ Reset</button> : null}
+          {hasActiveFilters ? <button type="button" className="dt-clear-btn" onClick={clearFilters}>↻ Reset Filters</button> : null}
         </div>
 
-        {/* Filter tags */}
-        {filterTags.length > 0 ? (
-          <div className="dt-filter-tags">
-            {filterTags.map((t) => (
-              <span className="dt-filter-tag" key={t.label}>{t.label} <button type="button" onClick={t.onClear}>✕</button></span>
-            ))}
-          </div>
-        ) : null}
-
-        {/* Info bar */}
         <div className="dt-info">
-          <span>Showing {startRow}–{endRow} of {filtered.length} student{filtered.length !== 1 ? "s" : ""}</span>
-          {checkedIds.size > 0 ? <span style={{ color: "var(--accent)" }}>{checkedIds.size} selected</span> : null}
+          <span>Showing <strong style={{ color: "var(--accent)" }}>{filtered.length}</strong> of <strong style={{ color: "var(--accent)" }}>{students.length}</strong> students</span>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            {checkedIds.size > 0 ? <span style={{ color: "var(--accent)", fontSize: "0.78rem" }}>{checkedIds.size} selected</span> : null}
+            <div className="dt-export-wrap" ref={exportRef}>
+              <button type="button" className="dt-export-btn" onClick={() => setShowExport((v) => !v)}>↓ Export ▾</button>
+              {showExport ? (
+                <div className="dt-export-menu">
+                  <button onClick={exportCSV}>Export as CSV</button>
+                </div>
+              ) : null}
+            </div>
+          </div>
         </div>
 
-        {/* Table */}
         <div className="dt-table-wrap">
           <table className="dt-table">
             <thead>
               <tr>
                 <th className="dt-check"><input type="checkbox" checked={allChecked} onChange={toggleAll} /></th>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Batch</th>
-                <th>Level</th>
-                <th>Country</th>
-                <th>Status</th>
+                <th><SortHeader label="Name" sKey="full_name" /></th>
+                <th><SortHeader label="Email" sKey="email" /></th>
+                <th><SortHeader label="Status" sKey="is_active" /></th>
+                <th>Course</th>
+                <th><SortHeader label="Level" sKey="experience_level" /></th>
+                <th><SortHeader label="Country" sKey="country" /></th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -315,29 +542,21 @@ export function AdminStudentsSection() {
               ) : paginated.map((s) => (
                 <tr key={s.id}>
                   <td className="dt-check"><input type="checkbox" checked={checkedIds.has(s.id)} onChange={() => toggleOne(s.id)} /></td>
-                  <td>
-                    <div className="dt-name-cell">
-                      <div className="dt-avatar">{(s.full_name ?? s.email).charAt(0).toUpperCase()}</div>
-                      <div>
-                        <div className="dt-name-primary">{s.full_name ?? "—"}</div>
-                        {s.institute ? <div className="dt-name-secondary">{s.institute}</div> : null}
-                      </div>
-                    </div>
-                  </td>
+                  <td><span className="dt-name-primary">{s.full_name ?? "—"}</span></td>
                   <td><span className="dt-name-secondary">{s.email}</span></td>
+                  <td><span className={`dt-badge ${s.is_active ? "dt-badge-active" : "dt-badge-inactive"}`}>{s.is_active ? "Active" : "Inactive"}</span></td>
                   <td>
                     {s.batches?.length ? s.batches.map((b) => (
-                      <span key={b.batch_id} className="dt-cell-tag" title={b.program_title ? `Program: ${b.program_title}` : undefined}>{b.batch_name}</span>
+                      <span key={b.batch_id} style={{ fontSize: "0.8rem" }}>
+                        {b.program_title ? `${b.program_title} - ` : ""}{b.batch_name}
+                      </span>
                     )) : <span className="dt-name-secondary">—</span>}
                   </td>
-                  <td>{s.experience_level ? <span className="dt-cell-tag">{s.experience_level}</span> : <span className="dt-name-secondary">—</span>}</td>
-                  <td><span className="dt-name-secondary">{s.country ?? "—"}</span></td>
-                  <td><span className={`dt-badge ${s.is_active ? "dt-badge-active" : "dt-badge-inactive"}`}>{s.is_active ? "Active" : "Inactive"}</span></td>
+                  <td>{s.experience_level ?? <span className="dt-name-secondary">—</span>}</td>
+                  <td>{s.country ?? <span className="dt-name-secondary">—</span>}</td>
                   <td>
                     <div className="dt-actions">
                       <button type="button" className="dt-action-btn" onClick={() => void openStudent(s)}>View</button>
-                      <button type="button" className="dt-action-btn" onClick={() => void toggleStudentStatus(s.id, !s.is_active)}>{s.is_active ? "Deactivate" : "Activate"}</button>
-                      <button type="button" className="dt-action-btn danger" onClick={() => void deleteStudent(s.id)}>Delete</button>
                     </div>
                   </td>
                 </tr>
@@ -346,7 +565,6 @@ export function AdminStudentsSection() {
           </table>
         </div>
 
-        {/* Footer */}
         <div className="dt-footer">
           <div className="dt-rows-per-page">
             <span>Rows per page:</span>
@@ -355,7 +573,7 @@ export function AdminStudentsSection() {
             </select>
           </div>
           <div className="dt-pagination">
-            <button type="button" className="dt-page-btn" disabled={safePage <= 1} onClick={() => setPage(1)}>««</button>
+            <button type="button" className="dt-page-btn" disabled={safePage <= 1} onClick={() => setPage(1)}>«</button>
             <button type="button" className="dt-page-btn" disabled={safePage <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))}>‹</button>
             {Array.from({ length: totalPages }, (_, i) => i + 1)
               .filter((p) => p === 1 || p === totalPages || Math.abs(p - safePage) <= 1)
@@ -364,104 +582,10 @@ export function AdminStudentsSection() {
                 item === "ellipsis" ? <span key={`e${idx}`} className="dt-page-ellipsis">…</span> : <button key={item} type="button" className={`dt-page-btn ${item === safePage ? "active" : ""}`} onClick={() => setPage(item)}>{item}</button>
               )}
             <button type="button" className="dt-page-btn" disabled={safePage >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>›</button>
-            <button type="button" className="dt-page-btn" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)}>»»</button>
+            <button type="button" className="dt-page-btn" disabled={safePage >= totalPages} onClick={() => setPage(totalPages)}>»</button>
           </div>
         </div>
       </div>
-
-      {/* Detail Drawer */}
-      {(selected || detailLoading) ? (
-        <>
-          <div className="dt-drawer-overlay" onClick={() => { if (!detailLoading) setSelected(null); }} />
-          <div className="dt-drawer">
-            <div className="dt-drawer-header">
-              <h3>{detailLoading ? "Loading…" : selected ? (selected.full_name || selected.email) : ""}</h3>
-              <button type="button" className="dt-drawer-close" onClick={() => setSelected(null)}>✕ Close</button>
-            </div>
-
-            {detailLoading ? <p className="muted">Loading student details…</p> : null}
-
-            {!detailLoading && selected ? (
-              <div className="stack">
-                {/* Status & Actions */}
-                <section className="card">
-                  <header className="card-header">
-                    <h3>
-                      {selected.email}
-                      <span className={`dt-badge ${selected.is_active ? "dt-badge-active" : "dt-badge-inactive"}`} style={{ marginLeft: "0.5rem" }}>
-                        {selected.is_active ? "Active" : "Inactive"}
-                      </span>
-                    </h3>
-                    <div className="row-inline" style={{ gap: "0.4rem" }}>
-                      <button type="button" className={selected.is_active ? "button danger" : "button"} style={{ fontSize: "0.75rem" }} onClick={() => void toggleStudentStatus(selected.id, !selected.is_active)}>
-                        {selected.is_active ? "Deactivate" : "Activate"}
-                      </button>
-                      <button type="button" className="button danger" style={{ fontSize: "0.75rem" }} onClick={() => void deleteStudent(selected.id)}>Delete</button>
-                    </div>
-                  </header>
-                  {selected.batches?.length ? (
-                    <div style={{ padding: "0.5rem 0" }}>
-                      {selected.batches.map((b) => (
-                        <div key={b.batch_id} className="muted" style={{ fontSize: "0.8rem", marginBottom: "0.25rem" }}>
-                          📦 <strong>{b.batch_name}</strong>{b.program_title ? ` · 📋 ${b.program_title}` : ""}
-                        </div>
-                      ))}
-                    </div>
-                  ) : <p className="muted" style={{ fontSize: "0.8rem" }}>No batch assigned</p>}
-                </section>
-
-                {/* Profile form */}
-                <section className="card">
-                  <header className="card-header">
-                    <h3>Profile</h3>
-                    <p className="muted">Joined {new Date(selected.created_at).toLocaleDateString()}</p>
-                  </header>
-                  <form className="form" onSubmit={(e) => void saveStudent(e)}>
-                    {PROFILE_FIELDS.map(({ key, label }) => (
-                      <label key={key}>{label}<input value={editForm[key]} onChange={(ev) => setEditForm((f) => ({ ...f, [key]: ev.target.value }))} /></label>
-                    ))}
-                    <label>Country
-                      <input list="admin-student-country-options" value={editForm.country} onChange={(ev) => { const v = ev.target.value; setEditForm((f) => ({ ...f, country: v, state: "", city: "" })); setStates([]); setCities([]); const m = getCaseInsensitiveExactMatch(countries, v); if (m) void loadStatesForCountry(m); }} placeholder={loadingCountries ? "Loading…" : "Type country"} required />
-                      <datalist id="admin-student-country-options">{countries.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
-                    </label>
-                    <label>State
-                      <input list="admin-student-state-options" value={editForm.state} onChange={(ev) => { const v = ev.target.value; setEditForm((f) => ({ ...f, state: v, city: "" })); setCities([]); const mc = getCaseInsensitiveExactMatch(countries, editForm.country); const ms = getCaseInsensitiveExactMatch(states, v); if (mc && ms) void loadCitiesForState(mc, ms); }} placeholder={loadingStates ? "Loading…" : "Type state"} required />
-                      <datalist id="admin-student-state-options">{states.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
-                    </label>
-                    <label>City
-                      <input list="admin-student-city-options" value={editForm.city} onChange={(ev) => setEditForm((f) => ({ ...f, city: ev.target.value }))} placeholder={loadingCities ? "Loading…" : "Type city"} required />
-                      <datalist id="admin-student-city-options">{cities.map((o) => <option key={o} value={o}>{o}</option>)}</datalist>
-                    </label>
-                    <label>Experience Level
-                      <select value={editForm.experienceLevel} onChange={(ev) => setEditForm((f) => ({ ...f, experienceLevel: ev.target.value }))} required>
-                        <option value="">Select Level</option>
-                        {EXPERIENCE_LEVEL_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
-                      </select>
-                    </label>
-                    <button type="submit" className="button" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</button>
-                  </form>
-                </section>
-
-                {/* IP Request History */}
-                <section className="card">
-                  <header className="card-header"><h3>IP Request History</h3></header>
-                  <ul className="list">
-                    {(selected.ipRequests ?? []).map((r) => (
-                      <li className="list-item" key={r.id}>
-                        <div className="row-inline"><strong>{r.requested_ip}:{r.port}</strong><span className={`badge badge-${r.status}`}>{r.status}</span></div>
-                        <p className="muted">{r.protocol.toUpperCase()} · {new Date(r.requested_at).toLocaleString()}</p>
-                        {r.reason ? <p className="muted">Reason: {r.reason}</p> : null}
-                        {r.review_note ? <p className="muted">Review note: {r.review_note}</p> : null}
-                      </li>
-                    ))}
-                    {!selected.ipRequests?.length ? <li className="list-item muted">No IP requests yet.</li> : null}
-                  </ul>
-                </section>
-              </div>
-            ) : null}
-          </div>
-        </>
-      ) : null}
     </>
   );
 }

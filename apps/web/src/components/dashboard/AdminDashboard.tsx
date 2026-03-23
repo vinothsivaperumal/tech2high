@@ -8,12 +8,25 @@ import { ProfileManager } from "../ProfileManager";
 import { AdminStudentsSection } from "./AdminStudentsSection";
 import { AdminTrainersSection } from "./AdminTrainersSection";
 import { CoursesSection } from "./CoursesSection";
-import { BatchVideoManager } from "./BatchVideoManager";
 import { BatchManager } from "./BatchManager";
 import { ProgramManager } from "./ProgramManager";
 import { NotificationCenter } from "./NotificationCenter";
+import { DashboardOverview } from "./DashboardOverview";
+import { PaymentManager } from "./PaymentManager";
+import { AgreementManager } from "./AgreementManager";
+import { CertificationManager } from "./CertificationManager";
+import { ResumeManager } from "./ResumeManager";
+import { SettingsPanel } from "./SettingsPanel";
+import { AuditLogsSection } from "./AuditLogsSection";
+import { VideoManagement } from "./VideoManagement";
+import { TrainerAssignment } from "./TrainerAssignment";
+import { CredentialManager } from "./CredentialManager";
+import { MaterialManager } from "./MaterialManager";
+import { AccessLogsViewer } from "./AccessLogsViewer";
+import { BusinessContextManager } from "./BusinessContextManager";
+import { CompanySettingsPanel } from "./CompanySettingsPanel";
 
-type AdminSection = "requests" | "audit" | "students" | "trainers" | "batches" | "videos" | "programs" | "courses" | "notifications" | "profile";
+type AdminSection = "dashboard" | "calendar" | "requests" | "audit" | "students" | "trainers" | "batches" | "videos" | "programs" | "courses" | "notifications" | "profile" | "payments" | "agreements" | "certifications" | "resumes" | "settings" | "trainer-assignment" | "credentials" | "materials" | "access-logs" | "business-context" | "company-settings";
 
 interface AdminIpRequest {
   id: string;
@@ -29,21 +42,10 @@ interface AdminIpRequest {
   review_note: string | null;
 }
 
-interface AuditLog {
-  id: string;
-  actor_user_id: string | null;
-  action: string;
-  entity_type: string;
-  entity_id: string | null;
-  metadata: Record<string, unknown>;
-  created_at: string;
-}
-
 export function AdminDashboard() {
-  const [section, setSection] = useState<AdminSection>("requests");
+  const [section, setSection] = useState<AdminSection>("dashboard");
   const [statusFilter, setStatusFilter] = useState<"all" | "pending" | "approved" | "rejected">("pending");
   const [requests, setRequests] = useState<AdminIpRequest[]>([]);
-  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -55,11 +57,6 @@ export function AdminDashboard() {
     setRequests(response.requests);
   }
 
-  async function loadAuditLogs() {
-    const response = await apiRequest<{ logs: AuditLog[] }>("/admin/audit-logs");
-    setLogs(response.logs);
-  }
-
   async function loadSectionData() {
     setLoading(true);
     setError("");
@@ -67,10 +64,6 @@ export function AdminDashboard() {
     try {
       if (section === "requests") {
         await loadIpRequests();
-      }
-
-      if (section === "audit") {
-        await loadAuditLogs();
       }
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Failed to load admin dashboard");
@@ -183,24 +176,8 @@ export function AdminDashboard() {
           </div>
         ) : null}
 
-        {!loading && section === "audit" ? (
-          <section className="card">
-            <header className="card-header">
-              <h3>Audit Logs</h3>
-            </header>
-
-            <ul className="list">
-              {logs.map((log) => (
-                <li className="list-item" key={log.id}>
-                  <strong>{log.action}</strong>
-                  <p className="muted">Entity: {log.entity_type}</p>
-                  <p className="muted">Time: {new Date(log.created_at).toLocaleString()}</p>
-                </li>
-              ))}
-              {!logs.length ? <li className="list-item muted">No audit logs available.</li> : null}
-            </ul>
-          </section>
-        ) : null}
+        {section === "calendar" ? (() => { const AdminCalendarPage = require("../../app/admin/calendar/page").default; return <AdminCalendarPage />; })() : null}
+        {section === "audit" ? <AuditLogsSection /> : null}
 
         {section === "profile" ? <ProfileManager /> : null}
 
@@ -214,9 +191,26 @@ export function AdminDashboard() {
 
         {!loading && section === "batches" ? <BatchManager /> : null}
 
-        {!loading && section === "videos" ? <BatchVideoManager /> : null}
+        {!loading && section === "videos" ? <VideoManagement /> : null}
 
         {!loading && section === "notifications" ? <NotificationCenter role="admin" apiBase="/admin" /> : null}
+
+        {section === "dashboard" ? <DashboardOverview /> : null}
+
+        {!loading && section === "payments" ? <PaymentManager /> : null}
+
+        {!loading && section === "agreements" ? <AgreementManager /> : null}
+
+        {!loading && section === "certifications" ? <CertificationManager /> : null}
+
+        {!loading && section === "resumes" ? <ResumeManager /> : null}
+        {!loading && section === "trainer-assignment" ? <TrainerAssignment /> : null}
+        {!loading && section === "credentials" ? <CredentialManager /> : null}
+        {!loading && section === "materials" ? <MaterialManager /> : null}
+        {!loading && section === "access-logs" ? <AccessLogsViewer /> : null}
+        {!loading && section === "business-context" ? <BusinessContextManager /> : null}
+        {!loading && section === "company-settings" ? <CompanySettingsPanel /> : null}
+        {section === "settings" ? <SettingsPanel /> : null}
       </div>
     );
   }
@@ -225,23 +219,46 @@ export function AdminDashboard() {
     <DashboardMenu
       sections={[
         {
+          title: "OVERVIEW",
+          items: [
+            { key: "dashboard" as AdminSection, label: "Dashboard", icon: "📊" },
+          ],
+        },
+        {
           title: "MANAGEMENT",
           items: [
-            { key: "requests" as AdminSection, label: "IP Approval Queue", icon: "🛡" },
+            { key: "calendar" as AdminSection, label: "Calendar & Events", icon: "📅" },
+            { key: "programs" as AdminSection, label: "Programs", icon: "📋" },
+            { key: "batches" as AdminSection, label: "Batches", icon: "📦" },
+            { key: "courses" as AdminSection, label: "Courses", icon: "📚" },
+            { key: "videos" as AdminSection, label: "Videos", icon: "🎬" },
             { key: "students" as AdminSection, label: "Students", icon: "🎓" },
             { key: "trainers" as AdminSection, label: "Trainers", icon: "👨‍🏫" },
-            { key: "batches" as AdminSection, label: "Batches", icon: "📦" },
-            { key: "programs" as AdminSection, label: "Programs", icon: "📋" },
-            { key: "videos" as AdminSection, label: "Videos", icon: "🎬" },
-            { key: "courses" as AdminSection, label: "Courses", icon: "📚" },
+            { key: "trainer-assignment" as AdminSection, label: "Trainer Assignment", icon: "🔗" },
+            { key: "credentials" as AdminSection, label: "Credentials", icon: "🔑" },
+            { key: "materials" as AdminSection, label: "Course Materials", icon: "📄" },
+            { key: "business-context" as AdminSection, label: "Business Context", icon: "🏢" },
+          ],
+        },
+        {
+          title: "OPERATIONS",
+          items: [
+            { key: "payments" as AdminSection, label: "Payments", icon: "💳" },
+            { key: "agreements" as AdminSection, label: "Agreements", icon: "📄" },
+            { key: "certifications" as AdminSection, label: "Certifications", icon: "🏆" },
+            { key: "resumes" as AdminSection, label: "Resume Collection", icon: "📝" },
+            { key: "requests" as AdminSection, label: "IP Approval Queue", icon: "🛡" },
             { key: "notifications" as AdminSection, label: "Notifications", icon: "🔔" },
             { key: "audit" as AdminSection, label: "Audit Logs", icon: "📋" },
+            { key: "access-logs" as AdminSection, label: "Access Logs", icon: "🔍" },
           ],
         },
         {
           title: "ACCOUNT",
           items: [
+            { key: "company-settings" as AdminSection, label: "Company Config", icon: "🏢" },
             { key: "profile" as AdminSection, label: "Registration Info", icon: "👤" },
+            { key: "settings" as AdminSection, label: "Settings", icon: "⚙️" },
           ],
         },
       ]}

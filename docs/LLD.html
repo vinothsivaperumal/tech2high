@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech2High Portal — Low-Level Design (LLD)</title>
+<style>
+  :root { --accent: #2563eb; --bg: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --code-bg: #f1f5f9; --section-bg: #f8fafc; --success: #16a34a; --warn: #d97706; --danger: #dc2626; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.65; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: var(--accent); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.5rem; color: var(--accent); margin: 2rem 0 1rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+  h3 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; color: #334155; }
+  h4 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #475569; }
+  p, li { font-size: 0.95rem; margin-bottom: 0.4rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: var(--section-bg); font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: var(--code-bg); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; font-family: 'Fira Code', 'Cascadia Code', monospace; }
+  pre { background: #1e293b; color: #e2e8f0; padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.75rem 0; font-size: 0.82rem; line-height: 1.5; }
+  pre code { background: none; color: inherit; padding: 0; }
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+  .badge-blue { background: #dbeafe; color: #1d4ed8; }
+  .badge-green { background: #dcfce7; color: #15803d; }
+  .badge-orange { background: #fff7ed; color: #c2410c; }
+  .badge-red { background: #fef2f2; color: #dc2626; }
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; background: var(--section-bg); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+  .toc { background: var(--section-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin-bottom: 0; }
+  .toc li { margin-bottom: 0.3rem; }
+  .meta-table td:first-child { font-weight: 600; width: 200px; }
+  .diagram { background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; padding: 1.5rem; margin: 1rem 0; font-family: monospace; font-size: 0.82rem; white-space: pre; overflow-x: auto; line-height: 1.4; }
+  @media print { body { padding: 0.5rem; font-size: 0.85rem; } h1 { font-size: 1.5rem; } h2 { font-size: 1.2rem; } pre { font-size: 0.75rem; } }
+  .cover { text-align: center; padding: 3rem 1rem; border-bottom: 3px solid var(--accent); margin-bottom: 2rem; }
+  .cover h1 { border: none; font-size: 2.5rem; }
+  .cover .sub { color: var(--muted); font-size: 1.1rem; margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>📐 Low-Level Design Document</h1>
+  <p class="sub">Tech2High Training Portal — portal.tech2high.com</p>
+  <p style="margin-top:1rem;font-size:0.9rem;color:var(--muted);">Version 1.0 &nbsp;|&nbsp; Date: March 2026 &nbsp;|&nbsp; Author: Tech2High Engineering</p>
+</div>
+
+<!-- META -->
+<table class="meta-table">
+  <tr><td>Project Name</td><td>Tech2High Training Portal</td></tr>
+  <tr><td>Version</td><td>1.0</td></tr>
+  <tr><td>Document Type</td><td>Low-Level Design (LLD)</td></tr>
+  <tr><td>Total Source Lines</td><td>~20,300 (16,226 TS/TSX + 534 SQL + 3,503 CSS)</td></tr>
+  <tr><td>Tech Stack</td><td>Express.js 4.21 · Next.js 15.1 · PostgreSQL 16 · AWS S3/EC2 · TypeScript 5</td></tr>
+</table>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#arch">System Architecture</a></li>
+    <li><a href="#dir">Directory & Module Structure</a></li>
+    <li><a href="#db">Database Design</a></li>
+    <li><a href="#api">API Layer Design</a></li>
+    <li><a href="#auth">Authentication & Authorization</a></li>
+    <li><a href="#frontend">Frontend Component Architecture</a></li>
+    <li><a href="#services">Service Layer</a></li>
+    <li><a href="#data">Data Flow Diagrams</a></li>
+    <li><a href="#security">Security Design</a></li>
+    <li><a href="#deploy">Deployment Architecture</a></li>
+    <li><a href="#review">Code Review Findings</a></li>
+  </ol>
+</div>
+
+<!-- 1. SYSTEM ARCHITECTURE -->
+<h2 id="arch">1. System Architecture</h2>
+
+<h3>1.1 High-Level Architecture Diagram</h3>
+<div class="diagram">
+┌──────────────────────────────────────────────────────────────────────┐
+│                         CLIENT LAYER                                │
+│  ┌──────────────────────────────────────────────────────────┐       │
+│  │  Next.js 15 (React 19)  —  port 3000                    │       │
+│  │  ┌─────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐ │       │
+│  │  │ Student  │ │ Trainer  │ │  Admin   │ │  Login/Reg   │ │       │
+│  │  │Dashboard │ │Dashboard │ │Dashboard │ │   Forms      │ │       │
+│  │  └─────────┘ └──────────┘ └──────────┘ └──────────────┘ │       │
+│  └────────────────────────┬─────────────────────────────────┘       │
+└───────────────────────────┼──────────────────────────────────────────┘
+                            │ HTTP REST (JSON + JWT Bearer)
+┌───────────────────────────┼──────────────────────────────────────────┐
+│                       API LAYER                                      │
+│  ┌────────────────────────▼─────────────────────────────────┐       │
+│  │  Express.js 4.21  —  port 4000  (Helmet, CORS, Morgan)  │       │
+│  │  ┌───────┐ ┌──────┐ ┌────────┐ ┌─────────┐ ┌────────┐  │       │
+│  │  │ Auth  │ │ Meta │ │Student │ │ Trainer │ │ Admin  │  │       │
+│  │  │Router │ │Router│ │ Router │ │ Router  │ │ Router │  │       │
+│  │  └───────┘ └──────┘ └────────┘ └─────────┘ └────────┘  │       │
+│  │  ┌─────────────────────────────────────────────────────┐ │       │
+│  │  │  Middleware: JWT Auth → Role Guard → Zod Validate   │ │       │
+│  │  └─────────────────────────────────────────────────────┘ │       │
+│  └──────────┬──────────┬──────────┬────────────────────────┘       │
+└─────────────┼──────────┼──────────┼──────────────────────────────────┘
+              │          │          │
+   ┌──────────▼──┐  ┌────▼───┐  ┌──▼────────┐
+   │ PostgreSQL  │  │ AWS S3 │  │ AWS EC2   │
+   │ 16 (RDS)   │  │  Files │  │ Sec.Group │
+   │ 30+ tables │  │        │  │  IP Mgmt  │
+   └─────────────┘  └────────┘  └───────────┘
+</div>
+
+<h3>1.2 Technology Matrix</h3>
+<table>
+  <tr><th>Layer</th><th>Technology</th><th>Version</th><th>Purpose</th></tr>
+  <tr><td>Runtime</td><td>Node.js</td><td>20 LTS</td><td>Server runtime</td></tr>
+  <tr><td>Backend</td><td>Express.js</td><td>4.21</td><td>REST API server</td></tr>
+  <tr><td>Frontend</td><td>Next.js</td><td>15.1</td><td>React SSR/CSR framework</td></tr>
+  <tr><td>UI Library</td><td>React</td><td>19</td><td>Component-based UI</td></tr>
+  <tr><td>Language</td><td>TypeScript</td><td>5.x</td><td>Type safety</td></tr>
+  <tr><td>Database</td><td>PostgreSQL</td><td>16</td><td>Primary data store</td></tr>
+  <tr><td>DB Driver</td><td>node-postgres (pg)</td><td>latest</td><td>Raw SQL queries</td></tr>
+  <tr><td>Validation</td><td>Zod</td><td>latest</td><td>Request schema validation</td></tr>
+  <tr><td>Auth</td><td>JWT + bcryptjs</td><td>—</td><td>Stateless authentication</td></tr>
+  <tr><td>Cloud Storage</td><td>AWS SDK v3 (S3)</td><td>latest</td><td>File uploads & storage</td></tr>
+  <tr><td>Cloud Compute</td><td>AWS EC2 API</td><td>v3</td><td>Security group IP management</td></tr>
+  <tr><td>File Upload</td><td>Multer</td><td>latest</td><td>Multipart form handling</td></tr>
+  <tr><td>Email</td><td>Nodemailer</td><td>latest</td><td>Transactional emails</td></tr>
+  <tr><td>Doc Gen</td><td>docx</td><td>latest</td><td>DOCX resume generation</td></tr>
+  <tr><td>HTTP Security</td><td>Helmet</td><td>latest</td><td>Security headers</td></tr>
+  <tr><td>Process Mgr</td><td>PM2</td><td>latest</td><td>Production process management</td></tr>
+</table>
+
+<!-- 2. DIRECTORY STRUCTURE -->
+<h2 id="dir">2. Directory & Module Structure</h2>
+
+<pre><code>tech2high/
+├── docker-compose.yml          # Local PostgreSQL container
+├── package.json                # Workspace root (npm workspaces)
+├── tsconfig.base.json          # Shared TypeScript config
+├── template.html               # Email HTML template
+│
+├── apps/
+│   ├── api/                    # Express.js backend (port 4000)
+│   │   ├── package.json        # API dependencies
+│   │   ├── tsconfig.json       # API TS config
+│   │   └── src/
+│   │       ├── index.ts        # Server entry — Express setup, routes mount
+│   │       ├── config/
+│   │       │   └── env.ts      # Zod-validated environment variables
+│   │       ├── db/
+│   │       │   ├── client.ts   # pg Pool singleton
+│   │       │   ├── migrate.ts  # Schema migration runner
+│   │       │   ├── schema.sql  # Full DDL (534 lines, 30+ tables)
+│   │       │   └── seed.cjs    # Seed data script
+│   │       ├── middleware/
+│   │       │   └── auth.ts     # JWT verification + role guard
+│   │       ├── routes/
+│   │       │   ├── auth.ts     # Registration, login, profile (373 lines)
+│   │       │   ├── meta.ts     # Country/state/city + IP detection
+│   │       │   ├── student.ts  # Student endpoints (920 lines)
+│   │       │   ├── trainer.ts  # Trainer endpoints (851 lines)
+│   │       │   └── admin.ts    # Admin endpoints (2,229 lines)
+│   │       ├── services/
+│   │       │   ├── audit.ts    # Audit log writer
+│   │       │   ├── email.ts    # Nodemailer wrapper
+│   │       │   ├── s3.ts       # AWS S3 upload/download/presign
+│   │       │   └── securityGroup.ts  # AWS EC2 SG IP management
+│   │       ├── types/
+│   │       │   └── express.d.ts  # Express Request augmentation
+│   │       └── utils/
+│   │           ├── jwt.ts      # JWT sign/verify helpers
+│   │           └── password.ts # bcrypt hash/compare
+│   │
+│   └── web/                    # Next.js frontend (port 3000)
+│       ├── next.config.mjs     # Next.js configuration
+│       ├── package.json
+│       ├── tsconfig.json
+│       └── src/
+│           ├── app/
+│           │   ├── globals.css    # All styles (3,503 lines)
+│           │   ├── layout.tsx     # Root layout + SettingsProvider
+│           │   ├── page.tsx       # Landing redirect
+│           │   ├── login/page.tsx         # Student login
+│           │   ├── admin/login/page.tsx   # Admin login
+│           │   ├── admin/page.tsx         # Admin dashboard
+│           │   ├── student/login/page.tsx # Student login (alt)
+│           │   ├── student/page.tsx       # Student dashboard
+│           │   ├── trainer/login/page.tsx # Trainer login
+│           │   └── trainer/page.tsx       # Trainer dashboard
+│           ├── components/
+│           │   ├── DashboardMenu.tsx    # Sidebar menu component
+│           │   ├── LoginForm.tsx        # Reusable login form
+│           │   ├── PortalShell.tsx      # Dashboard shell/layout
+│           │   ├── ProfileManager.tsx   # Profile edit component
+│           │   ├── StatusCard.tsx       # Status display card
+│           │   └── dashboard/           # (20+ dashboard components)
+│           └── lib/
+│               ├── api.ts       # apiRequest() helper
+│               ├── auth.ts      # Token storage & role check
+│               ├── geo.ts       # Geolocation detection
+│               └── settings.tsx # Theme & settings provider
+│
+└── deploy/
+    ├── README.md
+    ├── pm2/ecosystem.config.cjs  # PM2 process definitions
+    └── scripts/
+        ├── deploy-sql.sh         # Remote SQL migration
+        ├── ec2-bootstrap.sh      # EC2 instance setup
+        └── ec2-deploy.sh         # Code deploy + restart</code></pre>
+
+<h3>2.1 File Size Distribution</h3>
+<table>
+  <tr><th>File</th><th>Lines</th><th>Responsibility</th></tr>
+  <tr><td><code>admin.ts</code> (API)</td><td>2,229</td><td>50+ admin endpoints — students, trainers, programs, courses, payments, credentials, business context</td></tr>
+  <tr><td><code>StudentDashboard.tsx</code></td><td>1,066</td><td>Student dashboard orchestrator — 15 sections, state management, routing</td></tr>
+  <tr><td><code>student.ts</code> (API)</td><td>920</td><td>40+ student endpoints — resume CRUD, DOCX generation, assignments, credentials</td></tr>
+  <tr><td><code>TrainerDashboard.tsx</code></td><td>863</td><td>Trainer dashboard — 12 sections, batch management, assignments, videos, projects</td></tr>
+  <tr><td><code>trainer.ts</code> (API)</td><td>851</td><td>30+ trainer endpoints — batches, assignments, videos, materials, student projects</td></tr>
+  <tr><td><code>ATSResumeBuilder.tsx</code></td><td>823</td><td>ATS resume builder — editor, preview, DOCX download with 5 templates</td></tr>
+  <tr><td><code>globals.css</code></td><td>3,503</td><td>All application styles — 20+ namespaced sections</td></tr>
+  <tr><td><code>schema.sql</code></td><td>534</td><td>Complete DDL — 30+ tables, 10 enum types, constraints, indexes</td></tr>
+</table>
+
+<!-- 3. DATABASE DESIGN -->
+<h2 id="db">3. Database Design</h2>
+
+<h3>3.1 Entity-Relationship Overview</h3>
+<div class="diagram">
+                    ┌─────────────┐
+                    │    users    │
+                    │─────────────│
+                    │ id (PK/UUID)│
+                    │ email (UQ) │
+                    │ password_hash│
+                    │ role (enum) │
+                    │ full_name   │
+                    │ phone, city │
+                    │ is_active   │
+                    │ login_enabled│
+                    └──────┬──────┘
+          ┌────────────────┼───────────────────┬──────────────┐
+          │                │                   │              │
+   ┌──────▼──────┐  ┌─────▼──────┐   ┌───────▼────────┐ ┌───▼──────────┐
+   │   batches   │  │notifications│   │ ip_update_reqs │ │ audit_logs   │
+   │─────────────│  │────────────│   │────────────────│ │──────────────│
+   │ trainer_id  │  │ from/to_id │   │ student_id     │ │ actor_user_id│
+   │ program_id  │  │ subject    │   │ requested_ip   │ │ action       │
+   │ zoom_link   │  │ is_read    │   │ status (enum)  │ │ entity_type  │
+   └──────┬──────┘  └────────────┘   └────────────────┘ │ metadata     │
+          │                                              └──────────────┘
+    ┌─────┴─────────────────┬───────────────┐
+    │                       │               │
+┌───▼──────────┐  ┌────────▼──────┐  ┌─────▼────────┐
+│batch_students│  │  assignments  │  │   videos     │
+│──────────────│  │───────────────│  │──────────────│
+│ batch_id(FK) │  │ batch_id(FK)  │  │ batch_id(FK) │
+│student_id(FK)│  │ title         │  │ s3_key       │
+│ UNIQUE(b,s)  │  │ due_at        │  │ youtube_url  │
+└──────────────┘  └───────┬───────┘  └──────────────┘
+                          │
+                 ┌────────▼───────────┐
+                 │ assignment_submiss │
+                 │────────────────────│
+                 │ assignment_id (FK) │
+                 │ student_id (FK)    │
+                 │ file_key (S3)      │
+                 │ file_type          │
+                 └────────────────────┘
+
+   ┌──────────────┐     ┌──────────────┐     ┌───────────────┐
+   │   programs   │────▶│program_courses│────▶│   courses     │
+   │──────────────│     │──────────────│     │───────────────│
+   │ title        │     │ program_id   │     │ title         │
+   │ program_code │     │ course_id    │     │ course_code   │
+   │ duration     │     └──────────────┘     └───────┬───────┘
+   └──────────────┘                                  │
+                                              ┌──────▼───────┐
+                                              │course_topics │
+                                              │──────────────│
+                                              │ course_id    │
+                                              │ title        │
+                                              │ sort_order   │
+                                              └──────┬───────┘
+                                              ┌──────▼───────┐
+                                              │course_videos │
+                                              │──────────────│
+                                              │ topic_id(FK) │
+                                              │ youtube_url  │
+                                              └──────────────┘
+
+  ┌──────────┐    ┌───────────┐    ┌─────────────────┐
+  │ clients  │───▶│ projects  │───▶│student_projects │
+  │──────────│    │───────────│    │─────────────────│
+  │ name     │    │ client_id │    │ student_id(FK)  │
+  │ industry │    │ title     │    │ project_id(FK)  │
+  │ website  │    │ domain    │    │ batch_id(FK)    │
+  └──────────┘    │ techs     │    │ role, dates     │
+                  └───────────┘    │ UNIQUE(s_id,p_id)│
+                                   └─────────────────┘
+</div>
+
+<h3>3.2 Complete Table Inventory</h3>
+<table>
+  <tr><th>#</th><th>Table</th><th>PK</th><th>Key Columns</th><th>Foreign Keys</th></tr>
+  <tr><td>1</td><td><code>users</code></td><td>UUID</td><td>email(UQ), role, full_name, is_active, login_enabled</td><td>—</td></tr>
+  <tr><td>2</td><td><code>batches</code></td><td>UUID</td><td>name, trainer_id, program_id, zoom_link, is_active</td><td>users, programs</td></tr>
+  <tr><td>3</td><td><code>batch_students</code></td><td>UUID</td><td>UNIQUE(batch_id, student_id)</td><td>batches, users</td></tr>
+  <tr><td>4</td><td><code>batch_trainers</code></td><td>UUID</td><td>trainer_id, course_id</td><td>batches, users, courses</td></tr>
+  <tr><td>5</td><td><code>batch_courses</code></td><td>UUID</td><td>UNIQUE(batch_id, course_id), sort_order</td><td>batches, courses</td></tr>
+  <tr><td>6</td><td><code>videos</code></td><td>UUID</td><td>s3_key, youtube_url, is_active, access_scope</td><td>batches, users</td></tr>
+  <tr><td>7</td><td><code>video_mappings</code></td><td>UUID</td><td>scope (enum), program/batch/course refs</td><td>videos, programs, batches, courses</td></tr>
+  <tr><td>8</td><td><code>assignments</code></td><td>UUID</td><td>title, instructions, due_at</td><td>batches, users</td></tr>
+  <tr><td>9</td><td><code>assignment_submissions</code></td><td>UUID</td><td>file_name, file_key, file_type</td><td>assignments, users</td></tr>
+  <tr><td>10</td><td><code>courses</code></td><td>UUID</td><td>title, course_code, level, is_active</td><td>users (created_by)</td></tr>
+  <tr><td>11</td><td><code>course_topics</code></td><td>UUID</td><td>title, sort_order</td><td>courses</td></tr>
+  <tr><td>12</td><td><code>course_videos</code></td><td>UUID</td><td>youtube_url, sort_order</td><td>course_topics</td></tr>
+  <tr><td>13</td><td><code>course_materials</code></td><td>UUID</td><td>material_type(enum), s3_key, url, view_only</td><td>programs, batches, courses, topics, users</td></tr>
+  <tr><td>14</td><td><code>programs</code></td><td>UUID</td><td>title, program_code, duration, is_active</td><td>users (created_by)</td></tr>
+  <tr><td>15</td><td><code>program_courses</code></td><td>UUID</td><td>UNIQUE(program_id, course_id), sort_order</td><td>programs, courses</td></tr>
+  <tr><td>16</td><td><code>notifications</code></td><td>UUID</td><td>subject, message, is_read, to_role</td><td>users (from/to)</td></tr>
+  <tr><td>17</td><td><code>ip_update_requests</code></td><td>UUID</td><td>requested_ip, port, status(enum)</td><td>users</td></tr>
+  <tr><td>18</td><td><code>audit_logs</code></td><td>UUID</td><td>action, entity_type, entity_id, metadata(JSONB)</td><td>users</td></tr>
+  <tr><td>19</td><td><code>access_logs</code></td><td>UUID</td><td>resource_type, action, ip_address, metadata(JSONB)</td><td>users</td></tr>
+  <tr><td>20</td><td><code>student_payments</code></td><td>UUID</td><td>amount, paid_amount, status(enum), method</td><td>users, batches</td></tr>
+  <tr><td>21</td><td><code>student_agreements</code></td><td>UUID</td><td>agreement_type, status(enum), file_key</td><td>users, batches</td></tr>
+  <tr><td>22</td><td><code>student_certifications</code></td><td>UUID</td><td>completion_pct, status(enum), certificate_key</td><td>users, batches, courses, programs</td></tr>
+  <tr><td>23</td><td><code>student_resume_profiles</code></td><td>UUID</td><td>linkedin_url, github_url, preferred_role, status(enum)</td><td>users (UNIQUE student_id)</td></tr>
+  <tr><td>24</td><td><code>student_resume_education</code></td><td>UUID</td><td>institution, degree, field_of_study, years</td><td>users</td></tr>
+  <tr><td>25</td><td><code>student_resume_experience</code></td><td>UUID</td><td>company, title, start/end_date, description</td><td>users</td></tr>
+  <tr><td>26</td><td><code>student_resume_skills</code></td><td>UUID</td><td>skill_name, proficiency</td><td>users</td></tr>
+  <tr><td>27</td><td><code>student_resume_projects</code></td><td>UUID</td><td>title, description, tech_stack, url</td><td>users</td></tr>
+  <tr><td>28</td><td><code>credentials</code></td><td>UUID</td><td>credential_type(enum), host, port, password_encrypted</td><td>users (created_by)</td></tr>
+  <tr><td>29</td><td><code>credential_assignments</code></td><td>UUID</td><td>scope-based (batch/course/program)</td><td>credentials, batches, courses, programs</td></tr>
+  <tr><td>30</td><td><code>clients</code></td><td>UUID</td><td>name, industry, website, is_active</td><td>users (created_by)</td></tr>
+  <tr><td>31</td><td><code>projects</code></td><td>UUID</td><td>title, technologies, domain, is_active</td><td>clients, users</td></tr>
+  <tr><td>32</td><td><code>student_projects</code></td><td>UUID</td><td>role, start/end_date, UNIQUE(student_id, project_id)</td><td>users, projects, batches</td></tr>
+  <tr><td>33</td><td><code>generated_resumes</code></td><td>UUID</td><td>template(enum), resume_data(JSONB)</td><td>users</td></tr>
+</table>
+
+<h3>3.3 Enum Types</h3>
+<table>
+  <tr><th>Enum</th><th>Values</th><th>Used By</th></tr>
+  <tr><td><code>user_role</code></td><td>student, trainer, admin</td><td>users.role</td></tr>
+  <tr><td><code>request_status</code></td><td>pending, approved, rejected</td><td>ip_update_requests.status</td></tr>
+  <tr><td><code>payment_status</code></td><td>pending, partial, paid, overdue</td><td>student_payments.status</td></tr>
+  <tr><td><code>agreement_status</code></td><td>not_sent, sent, signed, rejected, expired</td><td>student_agreements.status</td></tr>
+  <tr><td><code>certification_status</code></td><td>not_eligible, eligible, issued, revoked</td><td>student_certifications.status</td></tr>
+  <tr><td><code>resume_status</code></td><td>not_started, in_progress, submitted, approved, changes_requested</td><td>student_resume_profiles.status</td></tr>
+  <tr><td><code>credential_type</code></td><td>postgresql, aws, snowflake, mssql, other</td><td>credentials.credential_type</td></tr>
+  <tr><td><code>material_type</code></td><td>pdf, doc, link, sql, zip, other</td><td>course_materials.material_type</td></tr>
+  <tr><td><code>video_scope</code></td><td>program, batch, course</td><td>video_mappings.scope</td></tr>
+  <tr><td><code>resume_template</code></td><td>classic, modern, minimal, executive, creative</td><td>generated_resumes.template</td></tr>
+</table>
+
+<!-- 4. API LAYER DESIGN -->
+<h2 id="api">4. API Layer Design</h2>
+
+<h3>4.1 Router Mounting</h3>
+<pre><code>// index.ts — Route mounting
+app.use("/api/auth",    authRouter);     // Public + authenticated
+app.use("/api/meta",    metaRouter);     // Public geo data
+app.use("/api/student", requireRole("student"), studentRouter);
+app.use("/api/trainer", requireRole("trainer"), trainerRouter);
+app.use("/api/admin",   requireRole("admin"),   adminRouter);</code></pre>
+
+<h3>4.2 Complete API Endpoint Matrix</h3>
+
+<h4>Auth Router (13 endpoints)</h4>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+  <tr><td>POST</td><td><code>/api/auth/register</code></td><td>Public</td><td>User registration with profile + geo</td></tr>
+  <tr><td>POST</td><td><code>/api/auth/login</code></td><td>Public</td><td>Email/password → JWT token</td></tr>
+  <tr><td>GET</td><td><code>/api/auth/me</code></td><td>Bearer</td><td>Current user profile</td></tr>
+  <tr><td>PATCH</td><td><code>/api/auth/me</code></td><td>Bearer</td><td>Update profile fields</td></tr>
+</table>
+
+<h4>Meta Router (4 endpoints)</h4>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+  <tr><td>GET</td><td><code>/api/meta/countries</code></td><td>Public</td><td>Country list (in-memory cached)</td></tr>
+  <tr><td>GET</td><td><code>/api/meta/states</code></td><td>Public</td><td>States by country</td></tr>
+  <tr><td>GET</td><td><code>/api/meta/cities</code></td><td>Public</td><td>Cities by country+state</td></tr>
+  <tr><td>GET</td><td><code>/api/meta/detect-location</code></td><td>Public</td><td>IP geolocation (ip-api.com fallback)</td></tr>
+</table>
+
+<h4>Student Router (40+ endpoints)</h4>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET</td><td><code>/student/batches</code></td><td>Enrolled batches</td></tr>
+  <tr><td>GET</td><td><code>/student/courses</code></td><td>Available courses</td></tr>
+  <tr><td>GET</td><td><code>/student/courses/:id/topics</code></td><td>Course topics with videos</td></tr>
+  <tr><td>GET</td><td><code>/student/videos</code></td><td>All accessible videos</td></tr>
+  <tr><td>GET</td><td><code>/student/batch-videos</code></td><td>Batch-specific YouTube videos</td></tr>
+  <tr><td>GET</td><td><code>/student/assignments</code></td><td>Assignments for enrolled batches</td></tr>
+  <tr><td>POST</td><td><code>/student/assignments/:id/submissions</code></td><td>Upload file (SQL/Python/TXT/XLS/XLSX)</td></tr>
+  <tr><td>POST</td><td><code>/student/ip-requests</code></td><td>Request IP whitelist</td></tr>
+  <tr><td>GET</td><td><code>/student/ip-requests</code></td><td>View own IP requests</td></tr>
+  <tr><td>GET</td><td><code>/student/payments</code></td><td>Payment history</td></tr>
+  <tr><td>GET</td><td><code>/student/agreements</code></td><td>Agreement status</td></tr>
+  <tr><td>PATCH</td><td><code>/student/agreements/:id/sign</code></td><td>Sign agreement</td></tr>
+  <tr><td>GET</td><td><code>/student/certifications</code></td><td>Certification status</td></tr>
+  <tr><td>GET/PUT</td><td><code>/student/resume/profile</code></td><td>Resume profile CRUD</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/student/resume/education[/:id]</code></td><td>Education entries</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/student/resume/experience[/:id]</code></td><td>Experience entries</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/student/resume/skills[/:id]</code></td><td>Skills entries</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/student/resume/projects[/:id]</code></td><td>Personal projects</td></tr>
+  <tr><td>GET</td><td><code>/student/profile-score</code></td><td>12-criteria profile completeness score</td></tr>
+  <tr><td>GET</td><td><code>/student/credentials</code></td><td>Assigned DB credentials</td></tr>
+  <tr><td>POST</td><td><code>/student/credentials/:id/reveal</code></td><td>Reveal credential (audit logged)</td></tr>
+  <tr><td>GET</td><td><code>/student/materials</code></td><td>Course materials</td></tr>
+  <tr><td>GET</td><td><code>/student/materials/:id/view</code></td><td>Download/presign material</td></tr>
+  <tr><td>GET</td><td><code>/student/assigned-projects</code></td><td>Business context projects</td></tr>
+  <tr><td>POST</td><td><code>/student/resume/generate-docx</code></td><td>Generate DOCX resume (5 templates)</td></tr>
+  <tr><td>GET/POST/PATCH</td><td><code>/student/notifications[/:id]</code></td><td>Notification management</td></tr>
+</table>
+
+<h4>Trainer Router (30+ endpoints)</h4>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET/POST</td><td><code>/trainer/batches</code></td><td>List/create batches</td></tr>
+  <tr><td>PATCH</td><td><code>/trainer/batches/:id/zoom-link</code></td><td>Update batch zoom link</td></tr>
+  <tr><td>POST/GET</td><td><code>/trainer/batches/:id/students</code></td><td>Add/list batch students</td></tr>
+  <tr><td>POST</td><td><code>/trainer/batches/:id/videos</code></td><td>Upload video file to S3</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/trainer/batches/:id/batch-videos</code></td><td>YouTube video CRUD</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/trainer/batches/:id/assignments</code></td><td>Assignment CRUD</td></tr>
+  <tr><td>GET</td><td><code>/trainer/batches/:id/submissions</code></td><td>View student submissions</td></tr>
+  <tr><td>GET/POST/PUT/DELETE</td><td><code>/trainer/batches/:id/materials</code></td><td>Material CRUD (with file upload)</td></tr>
+  <tr><td>GET</td><td><code>/trainer/batches/:id/insights</code></td><td>Batch statistics</td></tr>
+  <tr><td>GET</td><td><code>/trainer/projects</code></td><td>Available projects for assignment</td></tr>
+  <tr><td>GET/POST/DELETE</td><td><code>/trainer/batches/:id/student-projects</code></td><td>Student project assignment</td></tr>
+  <tr><td>GET</td><td><code>/trainer/dashboard-stats</code></td><td>Overview statistics</td></tr>
+  <tr><td>GET/POST/PATCH</td><td><code>/trainer/notifications</code></td><td>Notifications</td></tr>
+</table>
+
+<h4>Admin Router (50+ endpoints)</h4>
+<table>
+  <tr><th>Method</th><th>Endpoint</th><th>Description</th></tr>
+  <tr><td>GET/POST</td><td><code>/admin/ip-requests</code></td><td>IP request management + approve/reject</td></tr>
+  <tr><td>GET</td><td><code>/admin/audit-logs</code></td><td>Paginated audit log viewer</td></tr>
+  <tr><td>GET/PATCH/DELETE</td><td><code>/admin/students[/:id]</code></td><td>Student CRUD + batch enrollment</td></tr>
+  <tr><td>GET/PATCH</td><td><code>/admin/trainers[/:id]</code></td><td>Trainer management</td></tr>
+  <tr><td>GET/POST/DELETE</td><td><code>/admin/programs[/:id]</code></td><td>Program CRUD + course associations</td></tr>
+  <tr><td>GET/POST/DELETE</td><td><code>/admin/courses[/:id]</code></td><td>Course CRUD + topics + videos</td></tr>
+  <tr><td>GET</td><td><code>/admin/batches</code></td><td>All batches overview</td></tr>
+  <tr><td>Full CRUD</td><td><code>/admin/payments, agreements, certifications, resumes</code></td><td>Student lifecycle management</td></tr>
+  <tr><td>Full CRUD</td><td><code>/admin/credentials[/:id]</code></td><td>DB credential management + assignments</td></tr>
+  <tr><td>Full CRUD</td><td><code>/admin/materials[/:id]</code></td><td>Course material management</td></tr>
+  <tr><td>Full CRUD</td><td><code>/admin/clients[/:id]</code></td><td>Client company management</td></tr>
+  <tr><td>Full CRUD</td><td><code>/admin/projects[/:id]</code></td><td>Project management</td></tr>
+  <tr><td>GET/POST/DELETE</td><td><code>/admin/student-projects</code></td><td>Student-project assignments</td></tr>
+  <tr><td>GET/POST/PATCH</td><td><code>/admin/notifications</code></td><td>System notifications</td></tr>
+</table>
+
+<!-- 5. AUTH -->
+<h2 id="auth">5. Authentication & Authorization</h2>
+
+<h3>5.1 Authentication Flow</h3>
+<div class="diagram">
+Client                     API                      Database
+  │                         │                          │
+  │──POST /auth/login──────▶│                          │
+  │  {email, password}      │──SELECT user WHERE email▶│
+  │                         │◀────── user row ─────────│
+  │                         │                          │
+  │                         │──bcrypt.compare()        │
+  │                         │  (12 rounds)             │
+  │                         │                          │
+  │◀── {token: JWT} ────────│                          │
+  │                         │                          │
+  │──GET /student/batches──▶│                          │
+  │  Authorization: Bearer  │──verifyToken(jwt)        │
+  │                         │──requireRole("student")  │
+  │                         │──query(userId)──────────▶│
+  │◀── {batches: [...]}─────│◀────── results ──────────│
+</div>
+
+<h3>5.2 JWT Token Structure</h3>
+<pre><code>{
+  "userId": "uuid-v4",
+  "email": "user@example.com",
+  "role": "student" | "trainer" | "admin",
+  "iat": 1711000000,
+  "exp": 1711043200  // 12 hours
+}</code></pre>
+
+<h3>5.3 Middleware Pipeline</h3>
+<pre><code>Request → Helmet → CORS → Morgan → JSON Parser
+       → Route Match
+       → verifyToken (JWT decode → attach req.user)
+       → requireRole(role) (check req.user.role)
+       → Zod validate body/params
+       → Route handler
+       → Response</code></pre>
+
+<!-- 6. FRONTEND -->
+<h2 id="frontend">6. Frontend Component Architecture</h2>
+
+<h3>6.1 Component Tree</h3>
+<div class="diagram">
+RootLayout (layout.tsx)
+  └─ SettingsProvider (theme, font-size, sidebar)
+       ├─ LoginPage → LoginForm
+       │     └─ GeoDetection + Country/State/City selectors
+       │
+       ├─ StudentPage → PortalShell
+       │     └─ DashboardMenu + StudentDashboard
+       │           ├─ Overview (stats, batches, zoom links)
+       │           ├─ CoursesSection (topics + videos)
+       │           ├─ ATSResumeBuilder (editor + preview + DOCX)
+       │           ├─ MaterialViewer
+       │           ├─ CredentialViewer
+       │           ├─ ProfileManager
+       │           ├─ NotificationCenter
+       │           └─ SettingsPanel
+       │
+       ├─ TrainerPage → PortalShell
+       │     └─ DashboardMenu + TrainerDashboard
+       │           ├─ Overview (batch insights, zoom)
+       │           ├─ Batch Manager (CRUD + zoom)
+       │           ├─ TrainerAssignments (per-batch)
+       │           ├─ TrainerBatchVideos (YouTube CRUD)
+       │           ├─ TrainerBatchMaterials (file + link)
+       │           ├─ TrainerStudentProjects (assign)
+       │           ├─ CoursesSection
+       │           ├─ MaterialViewer / CredentialViewer
+       │           ├─ ProfileManager / NotificationCenter
+       │           └─ SettingsPanel
+       │
+       └─ AdminPage → PortalShell
+             └─ DashboardMenu + AdminDashboard
+                   ├─ DashboardOverview (global stats)
+                   ├─ AdminStudentsSection (CRUD + batches)
+                   ├─ AdminTrainersSection
+                   ├─ ProgramManager / BatchManager
+                   ├─ CoursesSection / VideoManagement
+                   ├─ PaymentManager / AgreementManager
+                   ├─ CertificationManager / ResumeManager
+                   ├─ CredentialManager / MaterialManager
+                   ├─ BusinessContextManager (clients+projects)
+                   ├─ AuditLogsSection
+                   ├─ NotificationCenter
+                   └─ SettingsPanel
+</div>
+
+<h3>6.2 Dashboard Component Inventory</h3>
+<table>
+  <tr><th>Component</th><th>Lines</th><th>Role</th><th>Sections</th></tr>
+  <tr><td><code>AdminDashboard</code></td><td>265</td><td>Admin orchestrator</td><td>18 sections</td></tr>
+  <tr><td><code>StudentDashboard</code></td><td>1,066</td><td>Student orchestrator</td><td>15 sections</td></tr>
+  <tr><td><code>TrainerDashboard</code></td><td>863</td><td>Trainer orchestrator</td><td>12 sections</td></tr>
+  <tr><td><code>ATSResumeBuilder</code></td><td>823</td><td>Resume editor+preview+DOCX</td><td>3 tabs (editor/preview/download)</td></tr>
+  <tr><td><code>AdminStudentsSection</code></td><td>591</td><td>Student CRUD</td><td>List + detail + batch assign</td></tr>
+  <tr><td><code>BatchManager</code></td><td>479</td><td>Batch CRUD</td><td>Create + list + assign students</td></tr>
+  <tr><td><code>ProfileManager</code></td><td>478</td><td>User profile editor</td><td>Fields + geo</td></tr>
+  <tr><td><code>BusinessContextManager</code></td><td>433</td><td>Clients + projects + assign</td><td>3 tabs</td></tr>
+  <tr><td><code>VideoManagement</code></td><td>420</td><td>Video CRUD + mapping</td><td>Upload + YouTube + scope</td></tr>
+  <tr><td><code>LoginForm</code></td><td>370</td><td>Auth form</td><td>Login + register + geo</td></tr>
+  <tr><td><code>NotificationCenter</code></td><td>~200</td><td>In-app notifications</td><td>List + compose + mark read</td></tr>
+  <tr><td><code>SettingsPanel</code></td><td>~150</td><td>Theme/font/sidebar</td><td>Appearance config</td></tr>
+</table>
+
+<!-- 7. SERVICES -->
+<h2 id="services">7. Service Layer</h2>
+
+<h3>7.1 Audit Service</h3>
+<pre><code>// services/audit.ts
+createAuditLog(pool, {
+  actorUserId: string,
+  action: string,           // "CREATE_CLIENT", "APPROVE_IP", etc.
+  entityType: string,       // "client", "ip_request", "credential"
+  entityId?: string,
+  metadata?: Record&lt;string, unknown&gt;
+})
+→ INSERT INTO audit_logs (...)</code></pre>
+
+<h3>7.2 Email Service</h3>
+<pre><code>// services/email.ts
+sendRegistrationEmail(toEmail, { name, role })
+→ Nodemailer SMTP transport
+→ HTML template from template.html
+→ Returns null if SMTP not configured (graceful degradation)</code></pre>
+
+<h3>7.3 S3 Service</h3>
+<pre><code>// services/s3.ts
+uploadFile(key, body, contentType) → PutObjectCommand
+getPresignedUrl(key, filename)    → GetObjectCommand + presigner (1hr expiry)
+deleteFile(key)                   → DeleteObjectCommand
+sanitizeFileName(name)            → Strip non-alphanumeric chars</code></pre>
+
+<h3>7.4 Security Group Service</h3>
+<pre><code>// services/securityGroup.ts
+addIngressRule(ip, port, protocol, description)
+→ AuthorizeSecurityGroupIngressCommand
+→ Adds CIDR /32 rule to configured SG
+→ Returns boolean success</code></pre>
+
+<h3>7.5 DOCX Resume Generator</h3>
+<pre><code>// Embedded in student.ts
+buildResumeDocument(template, data: ResumeData) → Document
+  Templates: classic(serif) | modern(calibri) | minimal(arial) | executive(bold) | creative(blue)
+  Sections: Header → Contact → Summary → Experience → Projects → Education → Skills
+  Assigned projects auto-merged into Projects section</code></pre>
+
+<!-- 8. DATA FLOW -->
+<h2 id="data">8. Data Flow Diagrams</h2>
+
+<h3>8.1 Student Assignment Submission</h3>
+<div class="diagram">
+Student Browser                API Server                S3 Bucket              Database
+     │                            │                        │                      │
+     │─ POST /assignments/:id ───▶│                        │                      │
+     │  (multipart file upload)   │                        │                      │
+     │                            │─ validate file type ──▶│                      │
+     │                            │  (.sql/.py/.txt/.xls)  │                      │
+     │                            │                        │                      │
+     │                            │─ uploadFile(key,body)─▶│                      │
+     │                            │◀── success ────────────│                      │
+     │                            │                        │                      │
+     │                            │─ INSERT submission ───────────────────────────▶│
+     │                            │◀── row ─────────────────────────────────────── │
+     │                            │                        │                      │
+     │                            │─ createAuditLog() ──────────────────────────▶│
+     │◀── {submission} ───────────│                        │                      │
+</div>
+
+<h3>8.2 DOCX Resume Generation</h3>
+<div class="diagram">
+Student Browser                API Server                           Database
+     │                            │                                    │
+     │─ POST /resume/generate ───▶│                                    │
+     │  {template, summary}       │─ SELECT user, profile ────────────▶│
+     │                            │◀── user + profile ─────────────────│
+     │                            │─ SELECT education, experience ────▶│
+     │                            │◀── [rows] ────────────────────────│
+     │                            │─ SELECT skills, projects ─────────▶│
+     │                            │◀── [rows] ────────────────────────│
+     │                            │─ SELECT assigned_projects ────────▶│
+     │                            │◀── [rows] ────────────────────────│
+     │                            │                                    │
+     │                            │─ buildResumeDocument(template, data)
+     │                            │  → docx.Document (in-memory)       │
+     │                            │─ Packer.toBuffer(doc)              │
+     │                            │                                    │
+     │                            │─ INSERT generated_resumes ────────▶│
+     │◀── Binary DOCX (blob) ─────│                                    │
+     │                            │                                    │
+     │─ URL.createObjectURL() ────│                                    │
+     │─ trigger download          │                                    │
+</div>
+
+<h3>8.3 IP Whitelist Approval Flow</h3>
+<div class="diagram">
+Student               API               Admin              AWS EC2 SG          Database
+  │                    │                  │                    │                  │
+  │─ POST ip-request ─▶│                  │                    │                  │
+  │  {ip, port, reason}│─ INSERT ─────────────────────────────────────────────▶│
+  │◀── pending ─────── │                  │                    │                  │
+  │                    │                  │                    │                  │
+  │                    │◀── GET ip-reqs ──│                    │                  │
+  │                    │──▶ {requests} ───│                    │                  │
+  │                    │                  │                    │                  │
+  │                    │◀── POST approve ─│                    │                  │
+  │                    │                  │                    │                  │
+  │                    │─ addIngressRule ─────────────────────▶│                  │
+  │                    │◀── success ──────────────────────────│                  │
+  │                    │                  │                    │                  │
+  │                    │─ UPDATE status='approved' ───────────────────────────▶│
+  │                    │─ createAuditLog ─────────────────────────────────────▶│
+  │                    │──▶ {approved} ───│                    │                  │
+</div>
+
+<!-- 9. SECURITY -->
+<h2 id="security">9. Security Design</h2>
+
+<h3>9.1 Security Controls Matrix</h3>
+<table>
+  <tr><th>Control</th><th>Status</th><th>Implementation</th></tr>
+  <tr><td>Authentication</td><td><span class="badge badge-green">✓ Implemented</span></td><td>JWT + bcrypt (12 rounds)</td></tr>
+  <tr><td>Authorization</td><td><span class="badge badge-green">✓ Implemented</span></td><td>Role-based middleware (student/trainer/admin)</td></tr>
+  <tr><td>Input Validation</td><td><span class="badge badge-green">✓ Implemented</span></td><td>Zod schemas on all endpoints</td></tr>
+  <tr><td>SQL Injection</td><td><span class="badge badge-green">✓ Mitigated</span></td><td>Parameterized queries ($1, $2…)</td></tr>
+  <tr><td>XSS</td><td><span class="badge badge-green">✓ Mitigated</span></td><td>React auto-escaping + Helmet headers</td></tr>
+  <tr><td>CORS</td><td><span class="badge badge-green">✓ Configured</span></td><td>Origin allowlist in cors()</td></tr>
+  <tr><td>Security Headers</td><td><span class="badge badge-green">✓ Implemented</span></td><td>Helmet middleware</td></tr>
+  <tr><td>File Upload Validation</td><td><span class="badge badge-green">✓ Implemented</span></td><td>MIME type + extension whitelist, 50 MB max</td></tr>
+  <tr><td>Password Storage</td><td><span class="badge badge-green">✓ Secure</span></td><td>bcrypt with 12 salt rounds</td></tr>
+  <tr><td>Rate Limiting</td><td><span class="badge badge-orange">⚠ Missing</span></td><td>Recommended: express-rate-limit</td></tr>
+  <tr><td>CSRF Protection</td><td><span class="badge badge-orange">⚠ Missing</span></td><td>JWT-only (no cookies) — lower risk</td></tr>
+  <tr><td>Credential Encryption</td><td><span class="badge badge-orange">⚠ Partial</span></td><td>Column exists but encryption not applied</td></tr>
+</table>
+
+<h3>9.2 Data Access Control</h3>
+<table>
+  <tr><th>Resource</th><th>Student</th><th>Trainer</th><th>Admin</th></tr>
+  <tr><td>Own profile</td><td>Read/Write</td><td>Read/Write</td><td>Read/Write all</td></tr>
+  <tr><td>Batches</td><td>Read (enrolled only)</td><td>Read/Write (own)</td><td>Read all</td></tr>
+  <tr><td>Assignments</td><td>Read + Submit</td><td>Full CRUD (own batches)</td><td>Read all</td></tr>
+  <tr><td>Videos</td><td>Read (enrolled)</td><td>Upload/CRUD (own)</td><td>Full CRUD</td></tr>
+  <tr><td>Credentials</td><td>Read (assigned) + Reveal</td><td>Read (assigned)</td><td>Full CRUD + Assign</td></tr>
+  <tr><td>IP Requests</td><td>Create + Read own</td><td>—</td><td>Approve/Reject</td></tr>
+  <tr><td>Students</td><td>—</td><td>Read (own batches)</td><td>Full CRUD</td></tr>
+  <tr><td>Payments</td><td>Read own</td><td>—</td><td>Full CRUD</td></tr>
+  <tr><td>Resume</td><td>Full CRUD own</td><td>—</td><td>Read + Approve</td></tr>
+  <tr><td>Clients/Projects</td><td>Read assigned</td><td>Read + Assign (own batches)</td><td>Full CRUD</td></tr>
+</table>
+
+<!-- 10. DEPLOYMENT -->
+<h2 id="deploy">10. Deployment Architecture</h2>
+
+<div class="diagram">
+┌─────────────────────────────────────────────────────────────┐
+│                       AWS Cloud                             │
+│                                                             │
+│  ┌─────────────────────────────────────┐                   │
+│  │  EC2 Instance (Amazon Linux)        │                   │
+│  │  ┌───────────────────────────────┐  │                   │
+│  │  │  Nginx (reverse proxy)        │  │                   │
+│  │  │  ┌──────────┐ ┌────────────┐  │  │                   │
+│  │  │  │ :3000    │ │  :4000     │  │  │                   │
+│  │  │  │ Next.js  │ │ Express.js │  │  │                   │
+│  │  │  │ (PM2)    │ │  (PM2)     │  │  │                   │
+│  │  │  └──────────┘ └────────────┘  │  │                   │
+│  │  └───────────────────────────────┘  │                   │
+│  └─────────────────────────────────────┘                   │
+│                  │              │                           │
+│        ┌─────────▼──┐   ┌──────▼──────┐                   │
+│        │  RDS       │   │  S3 Bucket  │                   │
+│        │ PostgreSQL │   │  (files)    │                   │
+│        │  16        │   │             │                   │
+│        └────────────┘   └─────────────┘                   │
+└─────────────────────────────────────────────────────────────┘
+</div>
+
+<h3>10.1 PM2 Process Configuration</h3>
+<pre><code>// ecosystem.config.cjs
+module.exports = {
+  apps: [
+    { name: "api",  script: "apps/api/dist/index.js",  env: { PORT: 4000 } },
+    { name: "web",  script: "npm", args: "run start --prefix apps/web", env: { PORT: 3000 } }
+  ]
+};</code></pre>
+
+<!-- 11. CODE REVIEW -->
+<h2 id="review">11. Code Review Findings</h2>
+
+<h3>11.1 Severity: High</h3>
+<div class="card" style="border-left: 4px solid var(--danger);">
+  <h4>🔴 No Rate Limiting on Login/Register</h4>
+  <p><strong>Files:</strong> <code>auth.ts</code>, <code>meta.ts</code></p>
+  <p><strong>Risk:</strong> Brute-force attacks on login, DDoS on geo APIs</p>
+  <p><strong>Fix:</strong> Add <code>express-rate-limit</code> middleware (e.g., 5 login attempts per minute)</p>
+</div>
+
+<div class="card" style="border-left: 4px solid var(--danger);">
+  <h4>🔴 Credential Passwords Not Encrypted at Rest</h4>
+  <p><strong>File:</strong> <code>admin.ts</code> (credentials endpoints)</p>
+  <p><strong>Risk:</strong> If database is breached, all stored DB credentials are exposed in plaintext.</p>
+  <p><strong>Fix:</strong> Implement AES-256-GCM encryption before INSERT, decrypt on reveal.</p>
+</div>
+
+<h3>11.2 Severity: Medium</h3>
+<div class="card" style="border-left: 4px solid var(--warn);">
+  <h4>🟠 JWT 12-Hour Expiry Without Refresh Tokens</h4>
+  <p><strong>File:</strong> <code>utils/jwt.ts</code></p>
+  <p><strong>Risk:</strong> Stolen token valid for 12 hours. No way to revoke.</p>
+  <p><strong>Fix:</strong> Reduce to 1h, implement refresh token rotation.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid var(--warn);">
+  <h4>🟠 No Pagination on List Endpoints</h4>
+  <p><strong>Files:</strong> Most GET endpoints in <code>student.ts</code>, <code>trainer.ts</code></p>
+  <p><strong>Risk:</strong> Performance degradation with growing data.</p>
+  <p><strong>Fix:</strong> Add <code>?page=1&limit=20</code> support with OFFSET/LIMIT.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid var(--warn);">
+  <h4>🟠 No Graceful Shutdown Handler</h4>
+  <p><strong>File:</strong> <code>index.ts</code></p>
+  <p><strong>Risk:</strong> Database connection pool not properly drained on restart.</p>
+  <p><strong>Fix:</strong> Add <code>process.on('SIGTERM', () => pool.end())</code>.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid var(--warn);">
+  <h4>🟠 External API Calls Without Timeouts</h4>
+  <p><strong>File:</strong> <code>meta.ts</code> (IP geolocation)</p>
+  <p><strong>Risk:</strong> Requests hang if external APIs are down.</p>
+  <p><strong>Fix:</strong> Add AbortController with 3-second timeout.</p>
+</div>
+
+<h3>11.3 Severity: Low (Code Quality)</h3>
+<div class="card" style="border-left: 4px solid #6366f1;">
+  <h4>🔵 Route Files Too Large</h4>
+  <p><code>admin.ts</code> (2,229 lines) should be split into domain-specific files: <code>admin-students.ts</code>, <code>admin-programs.ts</code>, <code>admin-credentials.ts</code>, etc.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #6366f1;">
+  <h4>🔵 Console.log Instead of Structured Logging</h4>
+  <p>Replace <code>console.error</code>/<code>console.warn</code> with winston/pino and include request IDs for traceability.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #6366f1;">
+  <h4>🔵 No Frontend Error Boundaries</h4>
+  <p>API failures cause white screens. Wrap dashboard roots in React Error Boundaries.</p>
+</div>
+
+<div class="card" style="border-left: 4px solid #6366f1;">
+  <h4>🔵 Magic Strings Repeated</h4>
+  <p>Role enums like <code>z.enum(["student", "trainer", "admin"])</code> repeated 20+ times. Extract to shared constants.</p>
+</div>
+
+<h3>11.4 Positive Observations</h3>
+<div class="card" style="border-left: 4px solid var(--success);">
+  <ul>
+    <li>✅ Full TypeScript coverage with strict mode</li>
+    <li>✅ Zod validation on all request bodies — no unvalidated inputs</li>
+    <li>✅ Parameterized SQL queries throughout — SQL injection well-mitigated</li>
+    <li>✅ Consistent authentication middleware pipeline</li>
+    <li>✅ Audit logging on all sensitive operations</li>
+    <li>✅ Trainer batch ownership verification (<code>assertTrainerOwnsBatch</code>)</li>
+    <li>✅ Clean component architecture with clear separation of concerns</li>
+    <li>✅ Helmet security headers enabled</li>
+    <li>✅ File upload validation with type and size limits</li>
+    <li>✅ Soft-delete pattern on critical entities</li>
+  </ul>
+</div>
+
+<hr style="margin: 2rem 0;">
+<p style="text-align: center; color: var(--muted); font-size: 0.85rem;">
+  Tech2High Portal — Low-Level Design Document v1.0 — Generated March 2026
+</p>
+
+</body>
+</html>

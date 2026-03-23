@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Sora, IBM_Plex_Mono } from "next/font/google";
+import { SettingsProvider } from "../lib/settings";
 
 import "./globals.css";
 
@@ -26,7 +27,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${sora.variable} ${plexMono.variable}`}>{children}</body>
+      <body className={`${sora.variable} ${plexMono.variable}`}>
+        <SettingsProvider>{children}</SettingsProvider>
+      </body>
     </html>
   );
 }

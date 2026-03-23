@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tech2High Portal — Software Requirements Specification (SRS)</title>
+<style>
+  :root { --accent: #7c3aed; --bg: #ffffff; --text: #1e293b; --muted: #64748b; --border: #e2e8f0; --section-bg: #f8fafc; --success: #16a34a; --warn: #d97706; --info: #2563eb; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: var(--text); background: var(--bg); line-height: 1.65; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+  h1 { font-size: 2rem; color: var(--accent); border-bottom: 3px solid var(--accent); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+  h2 { font-size: 1.5rem; color: var(--accent); margin: 2rem 0 1rem; border-left: 4px solid var(--accent); padding-left: 0.75rem; }
+  h3 { font-size: 1.15rem; margin: 1.25rem 0 0.5rem; color: #334155; }
+  h4 { font-size: 1rem; margin: 1rem 0 0.4rem; color: #475569; }
+  p, li { font-size: 0.95rem; margin-bottom: 0.4rem; }
+  ul, ol { padding-left: 1.5rem; margin-bottom: 0.75rem; }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+  th, td { border: 1px solid var(--border); padding: 0.5rem 0.75rem; text-align: left; }
+  th { background: var(--section-bg); font-weight: 600; }
+  tr:nth-child(even) td { background: #fafbfc; }
+  code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.85rem; font-family: 'Fira Code', monospace; }
+  .badge { display: inline-block; padding: 0.15rem 0.5rem; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+  .badge-high { background: #fef2f2; color: #dc2626; }
+  .badge-med { background: #fff7ed; color: #c2410c; }
+  .badge-low { background: #f0fdf4; color: #15803d; }
+  .card { border: 1px solid var(--border); border-radius: 8px; padding: 1rem; margin: 0.75rem 0; background: var(--section-bg); }
+  .toc { background: var(--section-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1.25rem; margin: 1.5rem 0; }
+  .toc a { color: var(--accent); text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .toc ol { margin-bottom: 0; }
+  .toc li { margin-bottom: 0.3rem; }
+  .req-id { display: inline-block; background: var(--accent); color: white; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 700; margin-right: 0.5rem; }
+  .meta-table td:first-child { font-weight: 600; width: 200px; }
+  .cover { text-align: center; padding: 3rem 1rem; border-bottom: 3px solid var(--accent); margin-bottom: 2rem; }
+  .cover h1 { border: none; font-size: 2.5rem; }
+  .cover .sub { color: var(--muted); font-size: 1.1rem; margin-top: 0.5rem; }
+  @media print { body { padding: 0.5rem; font-size: 0.85rem; } h1 { font-size: 1.5rem; } h2 { font-size: 1.2rem; } }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>📋 Software Requirements Specification</h1>
+  <p class="sub">Tech2High Training Portal — portal.tech2high.com</p>
+  <p style="margin-top:1rem;font-size:0.9rem;color:var(--muted);">Version 1.0 &nbsp;|&nbsp; Date: March 2026 &nbsp;|&nbsp; Author: Tech2High Engineering</p>
+</div>
+
+<!-- META -->
+<table class="meta-table">
+  <tr><td>Document Title</td><td>Software Requirements Specification (SRS)</td></tr>
+  <tr><td>Project Name</td><td>Tech2High Training Portal</td></tr>
+  <tr><td>Version</td><td>1.0</td></tr>
+  <tr><td>Status</td><td>Approved — In Production</td></tr>
+  <tr><td>Prepared By</td><td>Tech2High Engineering Team</td></tr>
+  <tr><td>Target URL</td><td>portal.tech2high.com</td></tr>
+</table>
+
+<!-- TABLE OF CONTENTS -->
+<div class="toc">
+  <h3>Table of Contents</h3>
+  <ol>
+    <li><a href="#intro">Introduction</a></li>
+    <li><a href="#description">Overall Description</a></li>
+    <li><a href="#functional">Functional Requirements</a></li>
+    <li><a href="#nonfunctional">Non-Functional Requirements</a></li>
+    <li><a href="#interfaces">External Interface Requirements</a></li>
+    <li><a href="#data">Data Requirements</a></li>
+    <li><a href="#constraints">Constraints & Assumptions</a></li>
+    <li><a href="#traceability">Requirements Traceability Matrix</a></li>
+    <li><a href="#appendix">Appendix</a></li>
+  </ol>
+</div>
+
+<!-- 1. INTRODUCTION -->
+<h2 id="intro">1. Introduction</h2>
+
+<h3>1.1 Purpose</h3>
+<p>This document specifies the complete software requirements for the <strong>Tech2High Training Portal</strong> — a web-based learning management and student lifecycle platform. It covers all functional, non-functional, and interface requirements for the three user roles: Student, Trainer, and Admin.</p>
+
+<h3>1.2 Scope</h3>
+<p>The Tech2High Portal is a full-stack web application that enables:</p>
+<ul>
+  <li><strong>Students</strong> to access training materials, submit assignments, build ATS-friendly resumes, view credentials, manage payments, and download professional DOCX resumes.</li>
+  <li><strong>Trainers</strong> to manage batches, create assignments, upload videos, distribute materials, assign real-world projects, and track student progress.</li>
+  <li><strong>Admins</strong> to manage all users, programs, courses, batches, payments, agreements, certifications, credentials, business context (clients/projects), audit logs, and IP whitelist requests.</li>
+</ul>
+
+<h3>1.3 Definitions & Acronyms</h3>
+<table>
+  <tr><th>Term</th><th>Definition</th></tr>
+  <tr><td>ATS</td><td>Applicant Tracking System — software used by employers to screen resumes</td></tr>
+  <tr><td>Batch</td><td>A cohort of students assigned to a trainer for a specific training period</td></tr>
+  <tr><td>DOCX</td><td>Microsoft Word Open XML document format</td></tr>
+  <tr><td>IP Whitelist</td><td>Adding a student's IP address to AWS EC2 Security Group rules</td></tr>
+  <tr><td>JWT</td><td>JSON Web Token — stateless authentication mechanism</td></tr>
+  <tr><td>LMS</td><td>Learning Management System</td></tr>
+  <tr><td>SG</td><td>Security Group (AWS EC2 firewall)</td></tr>
+  <tr><td>S3</td><td>AWS Simple Storage Service for file storage</td></tr>
+  <tr><td>UUID</td><td>Universally Unique Identifier (v4)</td></tr>
+</table>
+
+<h3>1.4 References</h3>
+<ul>
+  <li>Tech2High LLD (Low-Level Design Document) v1.0</li>
+  <li>AWS SDK v3 Documentation</li>
+  <li>Next.js 15 Documentation</li>
+  <li>Express.js 4.x API Reference</li>
+  <li>PostgreSQL 16 Documentation</li>
+</ul>
+
+<!-- 2. OVERALL DESCRIPTION -->
+<h2 id="description">2. Overall Description</h2>
+
+<h3>2.1 Product Perspective</h3>
+<p>The portal is a standalone web application deployed on AWS infrastructure. It serves as the central platform for Tech2High's training operations, replacing manual spreadsheet-based tracking with an integrated digital system.</p>
+
+<h3>2.2 User Classes & Characteristics</h3>
+<table>
+  <tr><th>User Class</th><th>Count</th><th>Technical Level</th><th>Primary Activities</th></tr>
+  <tr><td><strong>Student</strong></td><td>100+</td><td>Beginner–Intermediate</td><td>Access courses, submit assignments, build resume, view credentials</td></tr>
+  <tr><td><strong>Trainer</strong></td><td>5-20</td><td>Advanced</td><td>Manage batches, create content, grade work, assign projects</td></tr>
+  <tr><td><strong>Admin</strong></td><td>1-5</td><td>Advanced</td><td>Full system management, user lifecycle, payments, auditing</td></tr>
+</table>
+
+<h3>2.3 Operating Environment</h3>
+<table>
+  <tr><th>Component</th><th>Specification</th></tr>
+  <tr><td>Server OS</td><td>Amazon Linux 2 (EC2)</td></tr>
+  <tr><td>Runtime</td><td>Node.js 20 LTS</td></tr>
+  <tr><td>Database</td><td>PostgreSQL 16 (AWS RDS)</td></tr>
+  <tr><td>Storage</td><td>AWS S3</td></tr>
+  <tr><td>Client Browsers</td><td>Chrome 90+, Firefox 90+, Safari 15+, Edge 90+</td></tr>
+  <tr><td>Mobile Support</td><td>Responsive design (viewport-adaptive)</td></tr>
+</table>
+
+<h3>2.4 Design Constraints</h3>
+<ul>
+  <li>Monorepo architecture with npm workspaces</li>
+  <li>Single-tenant deployment (one organization per instance)</li>
+  <li>Stateless API (JWT-based, no server-side sessions)</li>
+  <li>AWS-dependent for storage (S3), security groups (EC2), and database (RDS)</li>
+</ul>
+
+<!-- 3. FUNCTIONAL REQUIREMENTS -->
+<h2 id="functional">3. Functional Requirements</h2>
+
+<!-- FR-AUTH -->
+<h3>3.1 Authentication & User Management</h3>
+
+<div class="card">
+  <p><span class="req-id">FR-AUTH-01</span> <strong>User Registration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>The system shall allow new users to register with email, password, full name, phone, role selection, and geolocation data (country, state, city). Geolocation shall be auto-detected from IP address and editable.</p>
+  <ul>
+    <li>Passwords must be hashed with bcrypt (12 rounds)</li>
+    <li>Email must be unique across the system</li>
+    <li>Registration email notification shall be sent (if SMTP configured)</li>
+    <li>Input validated via Zod schema</li>
+  </ul>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-AUTH-02</span> <strong>User Login</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>The system shall authenticate users via email and password, returning a JWT token valid for 12 hours. Login shall be denied if <code>is_active = false</code> or <code>login_enabled = false</code>.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-AUTH-03</span> <strong>Role-Based Access Control</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>The system shall enforce three roles: Student, Trainer, Admin. Each API route group requires the corresponding role. Unauthorized access returns HTTP 403.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-AUTH-04</span> <strong>Profile Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>All authenticated users can view and update their profile: full name, phone, city, state, country, institute, experience level, date of birth, address.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-AUTH-05</span> <strong>Role-Specific Login Pages</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Separate login URLs for each role: <code>/login</code> (student), <code>/trainer/login</code>, <code>/admin/login</code>. Each redirects to role-specific dashboard upon success.</p>
+</div>
+
+<!-- FR-STUDENT -->
+<h3>3.2 Student Features</h3>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-01</span> <strong>Dashboard Overview</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall see an overview with enrolled batches count, assignment count, profile completion score (12-point scoring system), and quick-access links to Zoom meetings.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-02</span> <strong>Course Access</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall access courses linked to their enrolled batches. Course content includes topics, YouTube-embedded videos, and downloadable materials (PDF, DOC, SQL, ZIP).</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-03</span> <strong>Assignment Submission</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view assignments for their batches and upload submissions. Accepted file types: <code>.sql</code>, <code>.py</code>, <code>.txt</code>, <code>.xls</code>, <code>.xlsx</code>. Maximum file size: 50 MB. Files stored in AWS S3.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-04</span> <strong>IP Whitelist Requests</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall request IP whitelist entries by providing IP address, port, protocol, and reason. Requests are reviewed by admin. Approved requests are automatically added to the AWS EC2 Security Group.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-05</span> <strong>ATS Resume Builder</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall build ATS-friendly resumes with an interactive editor containing sections for:</p>
+  <ul>
+    <li>Profile information (LinkedIn, GitHub, portfolio URL, preferred role)</li>
+    <li>Education history (institution, degree, field, years, grade)</li>
+    <li>Work experience (company, title, dates, description)</li>
+    <li>Skills with proficiency levels</li>
+    <li>Personal projects (title, description, tech stack, URL)</li>
+    <li>Assigned business projects (auto-included, read-only)</li>
+  </ul>
+  <p>A live preview tab and a DOCX download tab shall be available.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-06</span> <strong>DOCX Resume Download</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall generate and download DOCX resumes with choice of 5 templates:</p>
+  <table>
+    <tr><th>Template</th><th>Font</th><th>Style</th></tr>
+    <tr><td>Classic</td><td>Times New Roman</td><td>Traditional, centered header</td></tr>
+    <tr><td>Modern</td><td>Calibri</td><td>Navy blue accents, clean lines</td></tr>
+    <tr><td>Minimal</td><td>Arial</td><td>No borders, maximum whitespace</td></tr>
+    <tr><td>Executive</td><td>Georgia</td><td>Bold serif, larger sizing</td></tr>
+    <tr><td>Creative</td><td>Calibri</td><td>Blue accents (#2980b9), left-aligned</td></tr>
+  </table>
+  <p>Generated DOCX includes: header, contact info, summary, experience, all projects (assigned + personal), education, and skills. Each generation is logged in <code>generated_resumes</code> table.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-07</span> <strong>Credential Access</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view database credentials assigned to their batches/courses. Revealing a credential's password is audit-logged. Supported types: PostgreSQL, AWS, Snowflake, MSSQL, Other.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-08</span> <strong>Payment Tracking</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view their payment history with status indicators: pending, partial, paid, overdue. Amounts, due dates, and payment methods are displayed.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-09</span> <strong>Agreement Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view training agreements and digitally sign them. Status transitions: not_sent → sent → signed (or rejected/expired).</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-10</span> <strong>Certification Status</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view certification status: not_eligible → eligible → issued. Completion percentage and certificate download are available.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-11</span> <strong>Assigned Business Projects</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall view real-world projects assigned by trainers/admins, including client name, industry, role, date range, and technologies used. These projects are auto-included in resume generation.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-STU-12</span> <strong>Notifications</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Students shall receive and view in-app notifications from trainers and admins. Notifications can be marked as read.</p>
+</div>
+
+<!-- FR-TRAINER -->
+<h3>3.3 Trainer Features</h3>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-01</span> <strong>Batch Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall create batches, add students by email, set Zoom meeting links, and view batch insights (student count, assignment count, video count, material count, submission count).</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-02</span> <strong>Assignment Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall create, edit, and delete assignments per batch. Each assignment has title, instructions, and optional due date. Trainers view student submissions and download submitted files.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-03</span> <strong>Video Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall upload videos to S3 and manage YouTube video links per batch. YouTube videos have title, description, and URL. S3 videos support file upload up to 50 MB.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-04</span> <strong>Material Distribution</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall create and manage course materials per batch. Materials can be file uploads (S3) or external links. Types: PDF, DOC, SQL, ZIP, Link, Other. Materials can be set as view-only or downloadable.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-05</span> <strong>Student Project Assignment</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall assign real-world projects (from the business context) to students within their batches. Assignment includes role, start/end date, and description. Students must belong to the trainer's batch.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-TRN-06</span> <strong>Batch Insights Dashboard</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Trainers shall view per-batch statistics: student count, total assignments, total videos, total materials, and total submissions. Overview dashboard aggregates across all batches.</p>
+</div>
+
+<!-- FR-ADMIN -->
+<h3>3.4 Admin Features</h3>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-01</span> <strong>User Administration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall manage all users: view, edit, activate/deactivate, enable/disable login, soft-delete. Admins can filter students by name, email, batch, and status. Batch enrollment (add/remove students from batches) is supported.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-02</span> <strong>Program & Course Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall create programs (collections of courses) with metadata: title, code, duration, category, dates. Courses have topics and embedded YouTube videos. Programs can be linked to batches.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-03</span> <strong>Payment Administration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall create, update, and track student payments. Fields: amount, paid amount, status (pending/partial/paid/overdue), method, due date, paid date. Linked to batches.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-04</span> <strong>Agreement Administration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall manage training agreements: create, send, track status (not_sent → sent → signed/rejected/expired). Agreement files stored in S3.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-05</span> <strong>IP Whitelist Administration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall review, approve, or reject student IP whitelist requests. On approval, the system automatically adds the IP/port rule to the configured AWS EC2 Security Group via API. All actions are audit-logged.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-06</span> <strong>Credential Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall create and manage database credentials (PostgreSQL, AWS, Snowflake, MSSQL, Other). Credentials have host, port, database name, username, password, region, notes, and expiry date. Credentials are assigned to batches/courses/programs for scoped access.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-07</span> <strong>Material Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall manage course materials globally: create, edit, delete. Materials can be scoped to programs, batches, courses, or topics. Supports file upload (S3) and external links.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-08</span> <strong>Business Context Management</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-med">Medium</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall manage clients (company name, industry, website) and projects (title, client, technologies, domain). Projects can be assigned to students with role, date range, and description. Assigned projects are automatically included in student resumes.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-09</span> <strong>Audit Logging</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-high">High</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>All sensitive operations are logged with: actor user ID, action name, entity type, entity ID, and metadata (JSONB). Admins can view paginated audit logs with filtering by action, entity type, and date range.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-10</span> <strong>Resume Administration</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall view and manage student resume profiles. Admin can update resume status: not_started → in_progress → submitted → approved / changes_requested. Admin notes can be attached.</p>
+</div>
+
+<div class="card">
+  <p><span class="req-id">FR-ADM-11</span> <strong>Notification System</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Admins shall send targeted notifications to individual users or broadcast to all users of a specific role. Notifications have subject and message body.</p>
+</div>
+
+<!-- FR-SETTINGS -->
+<h3>3.5 System Settings</h3>
+
+<div class="card">
+  <p><span class="req-id">FR-SET-01</span> <strong>Theme Customization</strong></p>
+  <p><strong>Priority:</strong> <span class="badge badge-low">Low</span> &nbsp; <strong>Status:</strong> Implemented</p>
+  <p>Users shall customize UI appearance: theme color, font size (small/medium/large), sidebar position (left/right), and sidebar collapse state. Settings persist in localStorage.</p>
+</div>
+
+<!-- 4. NON-FUNCTIONAL REQUIREMENTS -->
+<h2 id="nonfunctional">4. Non-Functional Requirements</h2>
+
+<h3>4.1 Performance</h3>
+<table>
+  <tr><th>Requirement</th><th>Specification</th><th>Status</th></tr>
+  <tr><td>API Response Time</td><td>< 500ms for 95th percentile</td><td>Met (typical < 100ms)</td></tr>
+  <tr><td>Page Load Time</td><td>< 3 seconds initial load</td><td>Met (Next.js SSR)</td></tr>
+  <tr><td>Concurrent Users</td><td>50+ simultaneous users</td><td>Met (stateless API)</td></tr>
+  <tr><td>File Upload Size</td><td>Max 50 MB per file</td><td>Configured in multer</td></tr>
+  <tr><td>Database Queries</td><td>< 100ms per query</td><td>Met (parameterized, indexed)</td></tr>
+</table>
+
+<h3>4.2 Security</h3>
+<table>
+  <tr><th>Requirement</th><th>Implementation</th><th>Status</th></tr>
+  <tr><td>Password Hashing</td><td>bcrypt with 12 salt rounds</td><td>✅ Implemented</td></tr>
+  <tr><td>Authentication</td><td>JWT with 12h expiry</td><td>✅ Implemented</td></tr>
+  <tr><td>Authorization</td><td>Role-based middleware</td><td>✅ Implemented</td></tr>
+  <tr><td>Input Validation</td><td>Zod schemas on all endpoints</td><td>✅ Implemented</td></tr>
+  <tr><td>SQL Injection Prevention</td><td>Parameterized queries</td><td>✅ Implemented</td></tr>
+  <tr><td>XSS Prevention</td><td>React auto-escaping + Helmet</td><td>✅ Implemented</td></tr>
+  <tr><td>Security Headers</td><td>Helmet middleware</td><td>✅ Implemented</td></tr>
+  <tr><td>CORS</td><td>Origin allowlist</td><td>✅ Implemented</td></tr>
+  <tr><td>Audit Trail</td><td>Comprehensive audit_logs table</td><td>✅ Implemented</td></tr>
+  <tr><td>File Type Validation</td><td>Extension + MIME type whitelist</td><td>✅ Implemented</td></tr>
+</table>
+
+<h3>4.3 Reliability</h3>
+<table>
+  <tr><th>Requirement</th><th>Specification</th></tr>
+  <tr><td>Availability</td><td>99.5% uptime (AWS RDS + EC2)</td></tr>
+  <tr><td>Data Backup</td><td>PostgreSQL RDS automated backups (7-day retention)</td></tr>
+  <tr><td>Error Recovery</td><td>PM2 auto-restart on crash</td></tr>
+  <tr><td>Data Integrity</td><td>Foreign key constraints, UNIQUE constraints, ON DELETE CASCADE/SET NULL</td></tr>
+</table>
+
+<h3>4.4 Scalability</h3>
+<table>
+  <tr><th>Requirement</th><th>Specification</th></tr>
+  <tr><td>Users</td><td>Support 500+ registered users</td></tr>
+  <tr><td>Storage</td><td>AWS S3 (unlimited scaling)</td></tr>
+  <tr><td>Database</td><td>RDS instance scaling (vertical)</td></tr>
+  <tr><td>API</td><td>Stateless design enables horizontal scaling</td></tr>
+</table>
+
+<h3>4.5 Usability</h3>
+<table>
+  <tr><th>Requirement</th><th>Specification</th></tr>
+  <tr><td>Browser Support</td><td>Chrome, Firefox, Safari, Edge (latest 2 versions)</td></tr>
+  <tr><td>Responsive Design</td><td>Desktop (1024px+) optimized, mobile-functional</td></tr>
+  <tr><td>Navigation</td><td>Sidebar menu with section-based routing</td></tr>
+  <tr><td>Feedback</td><td>Success/error messages on all operations</td></tr>
+  <tr><td>Loading States</td><td>Loading indicators during data fetch</td></tr>
+</table>
+
+<!-- 5. EXTERNAL INTERFACES -->
+<h2 id="interfaces">5. External Interface Requirements</h2>
+
+<h3>5.1 User Interfaces</h3>
+<table>
+  <tr><th>Interface</th><th>Type</th><th>Description</th></tr>
+  <tr><td>Login Page</td><td>Form</td><td>Email/password input with role-specific URLs</td></tr>
+  <tr><td>Registration Form</td><td>Form</td><td>Multi-field form with geo-detection dropdowns</td></tr>
+  <tr><td>Dashboard</td><td>SPA</td><td>Sidebar menu + content area (section-based routing)</td></tr>
+  <tr><td>Resume Builder</td><td>Tabbed UI</td><td>Editor, Preview, and DOCX Download tabs</td></tr>
+  <tr><td>Settings Panel</td><td>Form</td><td>Theme, font size, sidebar configuration</td></tr>
+</table>
+
+<h3>5.2 Hardware Interfaces</h3>
+<p>No specific hardware interfaces required. Standard web browser on any device with internet connectivity.</p>
+
+<h3>5.3 Software Interfaces</h3>
+<table>
+  <tr><th>System</th><th>Interface</th><th>Purpose</th></tr>
+  <tr><td>AWS S3</td><td>REST API (SDK v3)</td><td>File upload, download, presigned URL generation</td></tr>
+  <tr><td>AWS EC2</td><td>REST API (SDK v3)</td><td>Security group rule management (IP whitelist)</td></tr>
+  <tr><td>AWS RDS</td><td>PostgreSQL wire protocol</td><td>Database operations</td></tr>
+  <tr><td>ip-api.com</td><td>HTTP GET</td><td>IP geolocation detection (primary)</td></tr>
+  <tr><td>ipapi.co</td><td>HTTP GET</td><td>IP geolocation detection (fallback)</td></tr>
+  <tr><td>Country/State/City API</td><td>HTTP GET</td><td>Location data for registration</td></tr>
+  <tr><td>SMTP Server</td><td>Nodemailer</td><td>Email notifications</td></tr>
+</table>
+
+<h3>5.4 Communication Interfaces</h3>
+<table>
+  <tr><th>Protocol</th><th>Port</th><th>Usage</th></tr>
+  <tr><td>HTTPS</td><td>443</td><td>Client ↔ Nginx (production)</td></tr>
+  <tr><td>HTTP</td><td>3000</td><td>Next.js frontend (internal)</td></tr>
+  <tr><td>HTTP</td><td>4000</td><td>Express API (internal)</td></tr>
+  <tr><td>PostgreSQL</td><td>5432</td><td>API ↔ RDS</td></tr>
+  <tr><td>SMTP</td><td>587/465</td><td>Email delivery</td></tr>
+</table>
+
+<!-- 6. DATA REQUIREMENTS -->
+<h2 id="data">6. Data Requirements</h2>
+
+<h3>6.1 Data Entities Summary</h3>
+<table>
+  <tr><th>Entity</th><th>Records (Est.)</th><th>Growth Rate</th><th>Retention</th></tr>
+  <tr><td>Users</td><td>500+</td><td>50/month</td><td>Permanent (soft-delete)</td></tr>
+  <tr><td>Batches</td><td>50+</td><td>5/month</td><td>Permanent</td></tr>
+  <tr><td>Assignments</td><td>500+</td><td>50/month</td><td>Permanent</td></tr>
+  <tr><td>Submissions</td><td>5,000+</td><td>500/month</td><td>Permanent (S3)</td></tr>
+  <tr><td>Videos</td><td>200+</td><td>20/month</td><td>Permanent (S3)</td></tr>
+  <tr><td>Materials</td><td>300+</td><td>30/month</td><td>Permanent (S3)</td></tr>
+  <tr><td>Audit Logs</td><td>10,000+</td><td>1,000/month</td><td>12 months</td></tr>
+  <tr><td>Resume Data</td><td>500+</td><td>50/month</td><td>Permanent</td></tr>
+  <tr><td>Generated Resumes</td><td>2,000+</td><td>200/month</td><td>Latest per student</td></tr>
+</table>
+
+<h3>6.2 Data Validation Rules</h3>
+<table>
+  <tr><th>Field</th><th>Validation</th></tr>
+  <tr><td>Email</td><td>Valid email format, unique, case-insensitive</td></tr>
+  <tr><td>Password</td><td>Minimum 6 characters</td></tr>
+  <tr><td>File uploads</td><td>.sql, .py, .txt, .xls, .xlsx only; max 50 MB</td></tr>
+  <tr><td>IP Address</td><td>IPv4 format (regex validated)</td></tr>
+  <tr><td>Port</td><td>Integer 1–65535</td></tr>
+  <tr><td>Payment Amount</td><td>Numeric, 2 decimal places, non-negative</td></tr>
+  <tr><td>URLs</td><td>Valid URL format (YouTube, Zoom, website links)</td></tr>
+  <tr><td>Dates</td><td>ISO 8601 date format</td></tr>
+</table>
+
+<!-- 7. CONSTRAINTS -->
+<h2 id="constraints">7. Constraints & Assumptions</h2>
+
+<h3>7.1 Technical Constraints</h3>
+<ul>
+  <li>Single EC2 instance deployment (no load balancer)</li>
+  <li>Single-tenant architecture — one organization per deployment</li>
+  <li>AWS region: us-east-1 (hardcoded for S3 and EC2 services)</li>
+  <li>JWT-only authentication (no session cookies)</li>
+  <li>Raw SQL queries (no ORM) — requires manual query optimization</li>
+  <li>In-memory file processing (multer) — not streamed to S3</li>
+</ul>
+
+<h3>7.2 Business Constraints</h3>
+<ul>
+  <li>Training delivery is batch-based — students must be enrolled in a batch to access content</li>
+  <li>One trainer per batch (primary), with optional additional trainers via batch_trainers</li>
+  <li>No real-time collaboration — all interactions are asynchronous</li>
+  <li>No payment gateway integration — payments are manually tracked by admin</li>
+</ul>
+
+<h3>7.3 Assumptions</h3>
+<ul>
+  <li>Users have modern web browsers with JavaScript enabled</li>
+  <li>AWS services (RDS, S3, EC2) are available and properly configured</li>
+  <li>SMTP server is optional — system functions without email</li>
+  <li>Internet connectivity is required for all operations</li>
+  <li>Admin creates initial trainer and student accounts</li>
+</ul>
+
+<!-- 8. TRACEABILITY -->
+<h2 id="traceability">8. Requirements Traceability Matrix</h2>
+
+<table>
+  <tr><th>Req ID</th><th>Feature</th><th>API Endpoint</th><th>UI Component</th><th>DB Table</th></tr>
+  <tr><td>FR-AUTH-01</td><td>Registration</td><td>POST /auth/register</td><td>LoginForm</td><td>users</td></tr>
+  <tr><td>FR-AUTH-02</td><td>Login</td><td>POST /auth/login</td><td>LoginForm</td><td>users</td></tr>
+  <tr><td>FR-STU-03</td><td>Assignment Submit</td><td>POST /student/assignments/:id/submissions</td><td>StudentDashboard</td><td>assignment_submissions</td></tr>
+  <tr><td>FR-STU-05</td><td>Resume Builder</td><td>GET/POST /student/resume/*</td><td>ATSResumeBuilder</td><td>student_resume_*</td></tr>
+  <tr><td>FR-STU-06</td><td>DOCX Download</td><td>POST /student/resume/generate-docx</td><td>ATSResumeBuilder</td><td>generated_resumes</td></tr>
+  <tr><td>FR-STU-11</td><td>Assigned Projects</td><td>GET /student/assigned-projects</td><td>ATSResumeBuilder</td><td>student_projects</td></tr>
+  <tr><td>FR-TRN-01</td><td>Batch Management</td><td>GET/POST /trainer/batches</td><td>TrainerDashboard</td><td>batches</td></tr>
+  <tr><td>FR-TRN-02</td><td>Assignments</td><td>CRUD /trainer/batches/:id/assignments</td><td>TrainerDashboard</td><td>assignments</td></tr>
+  <tr><td>FR-TRN-05</td><td>Project Assignment</td><td>POST /trainer/batches/:id/student-projects</td><td>TrainerDashboard</td><td>student_projects</td></tr>
+  <tr><td>FR-ADM-05</td><td>IP Whitelist</td><td>POST /admin/ip-requests/:id/approve</td><td>AdminDashboard</td><td>ip_update_requests</td></tr>
+  <tr><td>FR-ADM-08</td><td>Business Context</td><td>CRUD /admin/clients, /admin/projects</td><td>BusinessContextManager</td><td>clients, projects</td></tr>
+  <tr><td>FR-ADM-09</td><td>Audit Logging</td><td>GET /admin/audit-logs</td><td>AuditLogsSection</td><td>audit_logs</td></tr>
+</table>
+
+<!-- 9. APPENDIX -->
+<h2 id="appendix">9. Appendix</h2>
+
+<h3>9.1 Test Accounts</h3>
+<table>
+  <tr><th>Role</th><th>Email</th><th>Password</th></tr>
+  <tr><td>Student</td><td>student@tech2high.com</td><td>password123</td></tr>
+  <tr><td>Trainer</td><td>trainer@tech2high.com</td><td>password123</td></tr>
+  <tr><td>Admin</td><td>admin@tech2high.com</td><td>password123</td></tr>
+</table>
+
+<h3>9.2 API Base URLs</h3>
+<table>
+  <tr><th>Environment</th><th>API URL</th><th>Web URL</th></tr>
+  <tr><td>Development</td><td>http://localhost:4000/api</td><td>http://localhost:3000</td></tr>
+  <tr><td>Production</td><td>https://portal.tech2high.com/api</td><td>https://portal.tech2high.com</td></tr>
+</table>
+
+<h3>9.3 File Type Matrix</h3>
+<table>
+  <tr><th>Context</th><th>Allowed Types</th><th>Max Size</th></tr>
+  <tr><td>Assignment Submissions</td><td>.sql, .py, .txt, .xls, .xlsx</td><td>50 MB</td></tr>
+  <tr><td>Course Materials</td><td>.pdf, .doc, .sql, .zip, link</td><td>50 MB</td></tr>
+  <tr><td>Video Uploads</td><td>video/*</td><td>50 MB</td></tr>
+  <tr><td>Agreement Files</td><td>.pdf, .doc</td><td>50 MB</td></tr>
+</table>
+
+<h3>9.4 Status Enum Reference</h3>
+<table>
+  <tr><th>Entity</th><th>Possible States</th><th>Transitions</th></tr>
+  <tr><td>Payment</td><td>pending → partial → paid / overdue</td><td>Admin-controlled</td></tr>
+  <tr><td>Agreement</td><td>not_sent → sent → signed / rejected / expired</td><td>Admin sends, Student signs</td></tr>
+  <tr><td>Certification</td><td>not_eligible → eligible → issued / revoked</td><td>Admin-controlled</td></tr>
+  <tr><td>Resume</td><td>not_started → in_progress → submitted → approved / changes_requested</td><td>Student submits, Admin reviews</td></tr>
+  <tr><td>IP Request</td><td>pending → approved / rejected</td><td>Student creates, Admin reviews</td></tr>
+</table>
+
+<hr style="margin: 2rem 0;">
+<p style="text-align: center; color: var(--muted); font-size: 0.85rem;">
+  Tech2High Portal — Software Requirements Specification v1.0 — Generated March 2026
+</p>
+
+</body>
+</html>

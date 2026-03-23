@@ -16,6 +16,14 @@
     "migrate": "npm run migrate --workspace apps/api",
     "deploy:sql:manual": "./deploy/scripts/deploy-sql.sh",
     "deploy:ec2:bootstrap": "./deploy/scripts/ec2-bootstrap.sh",
-    "deploy:ec2:manual": "./deploy/scripts/ec2-deploy.sh"
+    "deploy:ec2:manual": "./deploy/scripts/ec2-deploy.sh",
+    "test": "npx tsx tests/run-all.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "vitest": "^4.1.0"
+  },
+  "dependencies": {
+    "react-calendar": "^6.0.0"
   }
 }

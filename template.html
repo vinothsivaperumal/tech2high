@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Batch Program Course Management Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-bg: #1a1a2e;
+            --secondary-bg: #16213e;
+            --card-bg: #0f3460;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --success: #4caf50;
+            --warning: #ff9800;
+            --danger: #f44336;
+            --info: #2196f3;
+            --border-color: #2c3e50;
+            --sidebar-width: 250px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background-color: var(--primary-bg);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            background-color: var(--secondary-bg);
+            min-height: 100vh;
+            padding: 20px 0;
+            position: fixed;
+            width: var(--sidebar-width);
+            z-index: 100;
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
+            padding: 0 20px 30px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .sidebar-header h4 {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .sidebar .nav-link {
+            color: var(--text-secondary);
+            padding: 12px 20px;
+            border-radius: 0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            color: var(--text-primary);
+            background-color: var(--card-bg);
+            border-left: 3px solid var(--accent);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            font-size: 1.1rem;
+        }
+        
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            padding: 20px;
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Header */
+        .header {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin: 0;
+        }
+        
+        .header p {
+            margin: 5px 0 0;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+        
+        /* Card Styles */
+        .card-custom {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Form Styles */
+        .form-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+        
+        .form-control, .form-select {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 10px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 0.25rem rgba(233, 69, 96, 0.25);
+        }
+        
+        /* Button Styles */
+        .btn-primary-custom {
+            background-color: var(--accent);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary-custom:hover {
+            background-color: #d63751;
+            transform: translateY(-2px);
+        }
+        
+        .btn-outline-custom {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-outline-custom:hover {
+            background-color: var(--card-bg);
+            border-color: var(--accent);
+        }
+        
+        .btn-success-custom {
+            background-color: var(--success);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-success-custom:hover {
+            background-color: #3d8b40;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger-custom {
+            background-color: var(--danger);
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger-custom:hover {
+            background-color: #d32f2f;
+            transform: translateY(-2px);
+        }
+        
+        /* Table Styles */
+        .table-container {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 15px;
+            overflow-x: auto;
+        }
+        
+        .custom-table {
+            width: 100%;
+            color: var(--text-primary);
+        }
+        
+        .custom-table th {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            font-weight: 600;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .custom-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        .custom-table tr:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        
+        /* Status Badges */
+        .status-badge {
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-active {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+        
+        .status-inactive {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--danger);
+        }
+        
+        .status-pending {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        .status-approved {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+        
+        .status-rejected {
+            background-color: rgba(244, 67, 54, 0.2);
+            color: var(--danger);
+        }
+        
+        /* Stats Cards */
+        .stat-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card h3 {
+            font-size: 1.8rem;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+        
+        /* Tab Styles */
+        .nav-tabs .nav-link {
+            color: var(--text-secondary);
+            background-color: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            padding: 10px 15px;
+            margin-right: 10px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-tabs .nav-link:hover {
+            color: var(--text-primary);
+            border-bottom-color: var(--border-color);
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--accent);
+            background-color: transparent;
+            border-bottom: 2px solid var(--accent);
+        }
+        
+        /* Course Card */
+        .course-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+            height: 100%;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .course-thumbnail {
+            width: 100%;
+            height: 180px;
+            background: linear-gradient(135deg, var(--accent), var(--info));
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .course-thumbnail i {
+            font-size: 3rem;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        .course-info {
+            padding: 15px;
+        }
+        
+        .course-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .course-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            margin-bottom: 3px;
+        }
+        
+        .course-progress {
+            margin-top: 10px;
+        }
+        
+        /* Mobile Menu Toggle */
+        .mobile-menu-toggle {
+            display: none;
+            background-color: var(--accent);
+            border: none;
+            color: white;
+            padding: 8px;
+            border-radius: 4px;
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+        }
+        
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+        
+        .custom-toast {
+            background-color: var(--card-bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            min-width: 300px;
+            animation: slideIn 0.3s ease forwards;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .toast-success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .toast-error {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .toast-warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        /* Modal Styles */
+        .modal-content {
+            background-color: var(--secondary-bg);
+            color: var(--text-primary);
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-footer {
+            border-top: 1px solid var(--border-color);
+        }
+        
+        /* Progress Bar */
+        .progress {
+            height: 8px;
+            background-color: rgba(255,255,255,0.1);
+        }
+        
+        .progress-bar {
+            background-color: var(--accent);
+        }
+        
+        /* Filter Section */
+        .filter-section {
+            background-color: var(--secondary-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        /* Entity Relationship Card */
+        .entity-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .entity-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .entity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .entity-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .entity-count {
+            background-color: var(--accent);
+            color: white;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+            }
+            
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                padding-left: 60px;
+            }
+            
+            .stat-card {
+                margin-bottom: 15px;
+            }
+        }
+        
+        /* Hidden class for pages */
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+        
+        /* Level Badge */
+        .level-badge {
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .level-beginner {
+            background-color: rgba(76, 175, 80, 0.2);
+            color: var(--success);
+        }
+        
+        .level-intermediate {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: var(--warning);
+        }
+        
+        .level-advanced {
+            background-color: rgba(233, 69, 96, 0.2);
+            color: var(--accent);
+        }
+        
+        /* Video Card */
+        .video-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .video-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .video-thumbnail {
+            width: 100%;
+            height: 180px;
+            background-color: #000;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-thumbnail i {
+            font-size: 3rem;
+            color: rgba(255,255,255,0.7);
+        }
+        
+        .video-info {
+            padding: 15px;
+        }
+        
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .video-meta {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <i class="bi bi-list"></i>
+    </button>
+    
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h4><i class="bi bi-mortarboard-fill me-2"></i>EduManage</h4>
+        </div>
+        <nav class="nav flex-column" id="sidebarMenu">
+            <!-- Admin Menu -->
+            <div id="adminMenu">
+                <a class="nav-link active" href="#" data-page="admin-dashboard">
+                    <i class="bi bi-speedometer2"></i>Dashboard
+                </a>
+                <a class="nav-link" href="#" data-page="programs">
+                    <i class="bi bi-collection"></i>Programs
+                </a>
+                <a class="nav-link" href="#" data-page="batches">
+                    <i class="bi bi-people"></i>Batches
+                </a>
+                <a class="nav-link" href="#" data-page="courses">
+                    <i class="bi bi-book"></i>Courses
+                </a>
+                <a class="nav-link" href="#" data-page="trainers">
+                    <i class="bi bi-person-badge"></i>Trainers
+                </a>
+                <a class="nav-link" href="#" data-page="students">
+                    <i class="bi bi-person"></i>Students
+                </a>
+                <a class="nav-link" href="#" data-page="videos">
+                    <i class="bi bi-play-circle"></i>Videos
+                </a>
+                <a class="nav-link" href="#" data-page="payments">
+                    <i class="bi bi-credit-card"></i>Payments
+                </a>
+                <a class="nav-link" href="#" data-page="ip-approval">
+                    <i class="bi bi-shield-check"></i>IP Approval
+                </a>
+                <a class="nav-link" href="#" data-page="agreements">
+                    <i class="bi bi-file-earmark-text"></i>Agreements
+                </a>
+                <a class="nav-link" href="#" data-page="certifications">
+                    <i class="bi bi-award"></i>Certifications
+                </a>
+                <a class="nav-link" href="#" data-page="resume-collection">
+                    <i class="bi bi-file-earmark-person"></i>Resume Collection
+                </a>
+                <a class="nav-link" href="#" data-page="reports">
+                    <i class="bi bi-graph-up"></i>Reports
+                </a>
+                <a class="nav-link" href="#" data-page="settings">
+                    <i class="bi bi-gear"></i>Settings
+                </a>
+            </div>
+            
+            <!-- Trainer Menu -->
+            <div id="trainerMenu" style="display: none;">
+                <a class="nav-link active" href="#" data-page="trainer-dashboard">
+                    <i class="bi bi-speedometer2"></i>Dashboard
+                </a>
+                <a class="nav-link" href="#" data-page="trainer-batches">
+                    <i class="bi bi-people"></i>My Batches
+                </a>
+                <a class="nav-link" href="#" data-page="trainer-courses">
+                    <i class="bi bi-book"></i>My Courses
+                </a>
+                <a class="nav-link" href="#" data-page="trainer-students">
+                    <i class="bi bi-person"></i>My Students
+                </a>
+                <a class="nav-link" href="#" data-page="trainer-videos">
+                    <i class="bi bi-play-circle"></i>Videos
+                </a>
+                <a class="nav-link" href="#" data-page="trainer-certifications">
+                    <i class="bi bi-award"></i>Certifications
+                </a>
+            </div>
+            
+            <!-- Student Menu -->
+            <div id="studentMenu" style="display: none;">
+                <a class="nav-link active" href="#" data-page="student-dashboard">
+                    <i class="bi bi-speedometer2"></i>Dashboard
+                </a>
+                <a class="nav-link" href="#" data-page="student-program">
+                    <i class="bi bi-collection"></i>My Program
+                </a>
+                <a class="nav-link" href="#" data-page="student-courses">
+                    <i class="bi bi-book"></i>My Courses
+                </a>
+                <a class="nav-link" href="#" data-page="student-videos">
+                    <i class="bi bi-play-circle"></i>My Videos
+                </a>
+                <a class="nav-link" href="#" data-page="student-payments">
+                    <i class="bi bi-credit-card"></i>My Payments
+                </a>
+                <a class="nav-link" href="#" data-page="student-agreement">
+                    <i class="bi bi-file-earmark-text"></i>My Agreement
+                </a>
+                <a class="nav-link" href="#" data-page="student-resume">
+                    <i class="bi bi-file-earmark-person"></i>Resume Information
+                </a>
+                <a class="nav-link" href="#" data-page="student-certification">
+                    <i class="bi bi-award"></i>My Certification
+                </a>
+                <a class="nav-link" href="#" data-page="student-profile">
+                    <i class="bi bi-person-circle"></i>Profile
+                </a>
+            </div>
+            
+            <hr class="my-3 text-secondary">
+            <a class="nav-link" href="#" id="logoutLink">
+                <i class="bi bi-box-arrow-right"></i>Logout
+            </a>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Courses List Page -->
+        <div id="courses" class="page active">
+            <div class="header">
+                <div>
+                    <h1>Course Management</h1>
+                    <p>Manage courses and their associated content</p>
+                </div>
+                <button class="btn btn-primary-custom" onclick="navigateToPage('add-course')">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Course
+                </button>
+            </div>
+            
+            <div class="filter-section">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <input type="text" class="form-control" placeholder="Search by course name or code">
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select">
+                            <option value="">All Programs</option>
+                            <option value="fsd">Full Stack Development</option>
+                            <option value="ds">Data Science</option>
+                            <option value="cc">Cloud Computing</option>
+                            <option value="cyber">Cybersecurity</option>
+                            <option value="mobile">Mobile Development</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select">
+                            <option value="">All Levels</option>
+                            <option value="beginner">Beginner</option>
+                            <option value="intermediate">Intermediate</option>
+                            <option value="advanced">Advanced</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select class="form-select">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <button class="btn btn-outline-custom w-100">
+                            <i class="bi bi-search me-2"></i>Search
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table class="table custom-table">
+                    <thead>
+                        <tr>
+                            <th>Course ID</th>
+                            <th>Course Name</th>
+                            <th>Course Code</th>
+                            <th>Program(s)</th>
+                            <th>Duration</th>
+                            <th>Level</th>
+                            <th>Total Videos</th>
+                            <th>Enrolled Students</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>CRS001</td>
+                            <td><a href="#" onclick="viewCourse('CRS001')">HTML & CSS Basics</a></td>
+                            <td>HTML101</td>
+                            <td>Full Stack Development</td>
+                            <td>2 weeks</td>
+                            <td><span class="level-badge level-beginner">Beginner</span></td>
+                            <td>12</td>
+                            <td>245</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS001')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS001')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS001')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS001')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS002</td>
+                            <td><a href="#" onclick="viewCourse('CRS002')">JavaScript Essentials</a></td>
+                            <td>JS101</td>
+                            <td>Full Stack Development, Mobile Development</td>
+                            <td>3 weeks</td>
+                            <td><span class="level-badge level-beginner">Beginner</span></td>
+                            <td>15</td>
+                            <td>198</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS002')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS002')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS002')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS002')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS003</td>
+                            <td><a href="#" onclick="viewCourse('CRS003')">React.js Framework</a></td>
+                            <td>REACT201</td>
+                            <td>Full Stack Development</td>
+                            <td>4 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>18</td>
+                            <td>156</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS003')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS003')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS003')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS003')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS004</td>
+                            <td><a href="#" onclick="viewCourse('CRS004')">Node.js Backend</a></td>
+                            <td>NODE201</td>
+                            <td>Full Stack Development</td>
+                            <td>4 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>20</td>
+                            <td>142</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS004')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS004')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS004')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS004')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS005</td>
+                            <td><a href="#" onclick="viewCourse('CRS005')">Python Fundamentals</a></td>
+                            <td>PYTHON101</td>
+                            <td>Data Science, Cybersecurity</td>
+                            <td>3 weeks</td>
+                            <td><span class="level-badge level-beginner">Beginner</span></td>
+                            <td>16</td>
+                            <td>189</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS005')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS005')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS005')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS005')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS006</td>
+                            <td><a href="#" onclick="viewCourse('CRS006')">Machine Learning Basics</a></td>
+                            <td>ML201</td>
+                            <td>Data Science</td>
+                            <td>5 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>22</td>
+                            <td>98</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS006')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS006')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS006')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS006')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS007</td>
+                            <td><a href="#" onclick="viewCourse('CRS007')">Deep Learning</a></td>
+                            <td>DL301</td>
+                            <td>Data Science</td>
+                            <td>6 weeks</td>
+                            <td><span class="level-badge level-advanced">Advanced</span></td>
+                            <td>25</td>
+                            <td>67</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS007')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS007')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS007')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS007')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS008</td>
+                            <td><a href="#" onclick="viewCourse('CRS008')">AWS Cloud Essentials</a></td>
+                            <td>AWS101</td>
+                            <td>Cloud Computing</td>
+                            <td>4 weeks</td>
+                            <td><span class="level-badge level-beginner">Beginner</span></td>
+                            <td>18</td>
+                            <td>145</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS008')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS008')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS008')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS008')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS009</td>
+                            <td><a href="#" onclick="viewCourse('CRS009')">Azure Fundamentals</a></td>
+                            <td>AZURE101</td>
+                            <td>Cloud Computing</td>
+                            <td>3 weeks</td>
+                            <td><span class="level-badge level-beginner">Beginner</span></td>
+                            <td>14</td>
+                            <td>98</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS009')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS009')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS009')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS009')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS010</td>
+                            <td><a href="#" onclick="viewCourse('CRS010')">Ethical Hacking</a></td>
+                            <td>EH201</td>
+                            <td>Cybersecurity</td>
+                            <td>5 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>24</td>
+                            <td>76</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS010')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS010')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS010')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS010')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS011</td>
+                            <td><a href="#" onclick="viewCourse('CRS011')">Android Development</a></td>
+                            <td>ANDROID101</td>
+                            <td>Mobile Development</td>
+                            <td>6 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>28</td>
+                            <td>89</td>
+                            <td><span class="status-badge status-active">Active</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS011')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS011')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS011')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS011')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CRS012</td>
+                            <td><a href="#" onclick="viewCourse('CRS012')">iOS Development</a></td>
+                            <td>IOS101</td>
+                            <td>Mobile Development</td>
+                            <td>6 weeks</td>
+                            <td><span class="level-badge level-intermediate">Intermediate</span></td>
+                            <td>26</td>
+                            <td>67</td>
+                            <td><span class="status-badge status-inactive">Inactive</span></td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-light" onclick="viewCourse('CRS012')">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="editCourse('CRS012')">
+                                    <i class="bi bi-pencil"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="manageCourseVideos('CRS012')">
+                                    <i class="bi bi-play-circle"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-light" onclick="assignCourseToProgram('CRS012')">
+                                    <i class="bi bi-link"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Course Detail Page -->
+        <div id="course-detail" class="page">
+            <div class="header">
+                <div>
+                    <h1>Course Details</h1>
+                    <p>View and manage course information and content</p>
+                </div>
+                <button class="btn btn-outline-custom" onclick="navigateToPage('courses')">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Courses
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card-custom">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4>HTML & CSS Basics</h4>
+                            <div>
+                                <button class="btn btn-primary-custom me-2" onclick="editCourse('CRS001')">
+                                    <i class="bi bi-pencil me-2"></i>Edit
+                                </button>
+                                <button class="btn btn-success-custom" id="toggleCourseStatus">
+                                    <i class="bi bi-toggle-on me-2"></i>Active
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <ul class="nav nav-tabs" id="courseTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#course-info">Information</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#course-programs">Programs</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#course-videos">Videos</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#course-students">Students</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#course-trainers">Trainers</button>
+                            </li>
+                        </ul>
+                        
+                        <div class="tab-content mt-3">
+                            <div class="tab-pane fade show active" id="course-info">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Course ID</label>
+                                        <input type="text" class="form-control" value="CRS001" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Course Code</label>
+                                        <input type="text" class="form-control" value="HTML101" readonly>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Course Name</label>
+                                        <input type="text" class="form-control" value="HTML & CSS Basics" readonly>
+                                    </div>
+                                    <div class="col-md-12 mb-3">
+                                        <label class="form-label">Description</label>
+                                        <textarea class="form-control" rows="3" readonly>Learn the fundamentals of HTML5 and CSS3, including semantic HTML, responsive design with Flexbox and Grid, animations, transitions, and modern CSS techniques. This course covers everything you need to build modern, responsive websites.</textarea>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Duration</label>
+                                        <input type="text" class="form-control" value="2 weeks" readonly>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Level</label>
+                                        <input type="text" class="form-control" value="Beginner" readonly>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label">Status</label>
+                                        <input type="text" class="form-control" value="Active" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Prerequisites</label>
+                                        <input type="text" class="form-control" value="Basic computer skills" readonly>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label">Learning Outcomes</label>
+                                        <input type="text" class="form-control" value="Build responsive websites" readonly>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="course-programs">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5>Associated Programs</h5>
+                                    <button class="btn btn-primary-custom" onclick="assignCourseToProgram()">
+                                        <i class="bi bi-plus-circle me-2"></i>Assign to Program
+                                    </button>
+                                </div>
+                                <div class="table-container">
+                                    <table class="table custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Program ID</th>
+                                                <th>Program Name</th>
+                                                <th>Duration</th>
+                                                <th>Status</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>PRG001</td>
+                                                <td>Full Stack Development</td>
+                                                <td>6 months</td>
+                                                <td><span class="status-badge status-active">Active</span></td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-x-circle"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="course-videos">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5>Course Videos</h5>
+                                    <button class="btn btn-primary-custom" onclick="addVideoToCourse()">
+                                        <i class="bi bi-plus-circle me-2"></i>Add Video
+                                    </button>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <div class="video-card">
+                                            <div class="video-thumbnail">
+                                                <i class="bi bi-play-circle-fill"></i>
+                                            </div>
+                                            <div class="video-info">
+                                                <div class="video-title">Introduction to HTML</div>
+                                                <div class="video-meta">Duration: 45 min</div>
+                                                <div class="video-meta">Added: 01/15/2026</div>
+                                                <div class="video-meta">Order: 1</div>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="video-card">
+                                            <div class="video-thumbnail">
+                                                <i class="bi bi-play-circle-fill"></i>
+                                            </div>
+                                            <div class="video-info">
+                                                <div class="video-title">HTML Elements and Tags</div>
+                                                <div class="video-meta">Duration: 60 min</div>
+                                                <div class="video-meta">Added: 01/16/2026</div>
+                                                <div class="video-meta">Order: 2</div>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <div class="video-card">
+                                            <div class="video-thumbnail">
+                                                <i class="bi bi-play-circle-fill"></i>
+                                            </div>
+                                            <div class="video-info">
+                                                <div class="video-title">CSS Fundamentals</div>
+                                                <div class="video-meta">Duration: 50 min</div>
+                                                <div class="video-meta">Added: 01/17/2026</div>
+                                                <div class="video-meta">Order: 3</div>
+                                                <div class="mt-2">
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-pencil"></i> Edit
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="course-students">
+                                <h5>Enrolled Students</h5>
+                                <div class="table-container">
+                                    <table class="table custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Student ID</th>
+                                                <th>Name</th>
+                                                <th>Batch</th>
+                                                <th>Enrollment Date</th>
+                                                <th>Progress</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>STU001</td>
+                                                <td>Arun Patel</td>
+                                                <td>FSD-2026-A</td>
+                                                <td>01/10/2026</td>
+                                                <td>
+                                                    <div class="progress" style="height: 10px;">
+                                                        <div class="progress-bar" style="width: 100%"></div>
+                                                    </div>
+                                                    <small>100%</small>
+                                                </td>
+                                                <td><span class="status-badge status-active">Completed</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>STU002</td>
+                                                <td>Sneha Reddy</td>
+                                                <td>FSD-2026-A</td>
+                                                <td>01/12/2026</td>
+                                                <td>
+                                                    <div class="progress" style="height: 10px;">
+                                                        <div class="progress-bar" style="width: 85%"></div>
+                                                    </div>
+                                                    <small>85%</small>
+                                                </td>
+                                                <td><span class="status-badge status-active">In Progress</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>STU003</td>
+                                                <td>John Smith</td>
+                                                <td>FSD-2026-B</td>
+                                                <td>02/01/2026</td>
+                                                <td>
+                                                    <div class="progress" style="height: 10px;">
+                                                        <div class="progress-bar" style="width: 60%"></div>
+                                                    </div>
+                                                    <small>60%</small>
+                                                </td>
+                                                <td><span class="status-badge status-active">In Progress</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            
+                            <div class="tab-pane fade" id="course-trainers">
+                                <h5>Assigned Trainers</h5>
+                                <div class="table-container">
+                                    <table class="table custom-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Trainer ID</th>
+                                                <th>Name</th>
+                                                <th>Email</th>
+                                                <th>Expertise</th>
+                                                <th>Assigned Batches</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>TRN001</td>
+                                                <td>John Smith</td>
+                                                <td>john.smith@edumanage.com</td>
+                                                <td>Frontend Development</td>
+                                                <td>FSD-2026-A, FSD-2026-B</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>TRN002</td>
+                                                <td>Sarah Johnson</td>
+                                                <td>sarah.j@edumanage.com</td>
+                                                <td>UI/UX Design</td>
+                                                <td>FSD-2026-A</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-sm btn-outline-light">
+                                                        <i class="bi bi-envelope"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card-custom">
+                        <h5 class="mb-3">Course Statistics</h5>
+                        <div class="entity-card">
+                            <div class="entity-header">
+                                <div class="entity-title">Total Students</div>
+                                <div class="entity-count">245</div>
+                            </div>
+                        </div>
+                        <div class="entity-card">
+                            <div class="entity-header">
+                                <div class="entity-title">Active Students</div>
+                                <div class="entity-count">198</div>
+                            </div>
+                        </div>
+                        <div class="entity-card">
+                            <div class="entity-header">
+                                <div class="entity-title">Completed</div>
+                                <div class="entity-count">47</div>
+                            </div>
+                        </div>
+                        <div class="entity-card">
+                            <div class="entity-header">
+                                <div class="entity-title">Average Progress</div>
+                                <div class="entity-count">78%</div>
+                            </div>
+                        </div>
+                        <div class="entity-card">
+                            <div class="entity-header">
+                                <div class="entity-title">Completion Rate</div>
+                                <div class="entity-count">82%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Add/Edit Course Page -->
+        <div id="add-course" class="page">
+            <div class="header">
+                <div>
+                    <h1>Add New Course</h1>
+                    <p>Create a new course for the training programs</p>
+                </div>
+                <button class="btn btn-outline-custom" onclick="navigateToPage('courses')">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Courses
+                </button>
+            </div>
+            
+            <div class="card-custom">
+                <form id="addCourseForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Course Name *</label>
+                            <input type="text" class="form-control" placeholder="Enter course name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Course Code *</label>
+                            <input type="text" class="form-control" placeholder="Enter course code" required>
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Description *</label>
+                            <textarea class="form-control" rows="4" placeholder="Enter course description" required></textarea>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Duration *</label>
+                            <input type="text" class="form-control" placeholder="e.g., 2 weeks" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Level *</label>
+                            <select class="form-select" required>
+                                <option value="">Select level</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select">
+                                <option value="active" selected>Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Prerequisites</label>
+                            <input type="text" class="form-control" placeholder="e.g., Basic computer skills">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Learning Outcomes</label>
+                            <input type="text" class="form-control" placeholder="e.g., Build responsive websites">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Assign to Programs</label>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prog1" checked>
+                                        <label class="form-check-label" for="prog1">
+                                            Full Stack Development
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prog2">
+                                        <label class="form-check-label" for="prog2">
+                                            Data Science
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="prog3">
+                                        <label class="form-check-label" for="prog3">
+                                            Cloud Computing
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4">
+                        <button type="button" class="btn btn-outline-custom me-2" onclick="resetCourseForm()">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Reset
+                        </button>
+                        <button type="button" class="btn btn-primary-custom" onclick="saveCourse()">
+                            <i class="bi bi-check-circle me-2"></i>Save Course
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Course Videos Management -->
+        <div id="course-videos" class="page">
+            <div class="header">
+                <div>
+                    <h1>Course Videos</h1>
+                    <p>Manage videos for HTML & CSS Basics</p>
+                </div>
+                <button class="btn btn-primary-custom" onclick="addVideoToCourse()">
+                    <i class="bi bi-plus-circle me-2"></i>Add New Video
+                </button>
+            </div>
+            
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">Introduction to HTML</div>
+                            <div class="video-meta">Duration: 45 min</div>
+                            <div class="video-meta">Order: 1</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">HTML Elements and Tags</div>
+                            <div class="video-meta">Duration: 60 min</div>
+                            <div class="video-meta">Order: 2</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">CSS Fundamentals</div>
+                            <div class="video-meta">Duration: 50 min</div>
+                            <div class="video-meta">Order: 3</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">Flexbox Layout</div>
+                            <div class="video-meta">Duration: 55 min</div>
+                            <div class="video-meta">Order: 4</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">Grid Layout</div>
+                            <div class="video-meta">Duration: 45 min</div>
+                            <div class="video-meta">Order: 5</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="video-card">
+                        <div class="video-thumbnail">
+                            <i class="bi bi-play-circle-fill"></i>
+                        </div>
+                        <div class="video-info">
+                            <div class="video-title">Responsive Design</div>
+                            <div class="video-meta">Duration: 60 min</div>
+                            <div class="video-meta">Order: 6</div>
+                            <div class="video-meta">Status: <span class="status-badge status-active">Active</span></div>
+                            <div class="mt-2">
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-eye"></i> Preview
+                                </button>
+                                <button class="btn btn-sm btn-outline-light me-1">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-light">
+                                    <i class="bi bi-arrow-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Navigation
+        function navigateToPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update sidebar active state
+            document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('data-page') === pageId) {
+                    link.classList.add('active');
+                }
+            });
+            
+            // Close mobile menu
+            document.getElementById('sidebar').classList.remove('show');
+        }
+        
+        // Mobile menu toggle
+        document.getElementById('mobileMenuToggle').addEventListener('click', function() {
+            document.getElementById('sidebar').classList.toggle('show');
+        });
+        
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar .nav-link[data-page]').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const pageId = this.getAttribute('data-page');
+                navigateToPage(pageId);
+            });
+        });
+        
+        // Course Management Functions
+        function viewCourse(id) {
+            navigateToPage('course-detail');
+            showToast('Loading course details...', 'info');
+        }
+        
+        function editCourse(id) {
+            navigateToPage('add-course');
+            showToast('Loading course for editing...', 'info');
+        }
+        
+        function manageCourseVideos(id) {
+            navigateToPage('course-videos');
+            showToast('Loading course videos...', 'info');
+        }
+        
+        function assignCourseToProgram(id) {
+            showToast('Opening program assignment dialog...', 'info');
+        }
+        
+        function addVideoToCourse() {
+            showToast('Opening add video dialog...', 'info');
+        }
+        
+        function saveCourse() {
+            showToast('Saving course...', 'info');
+            setTimeout(() => {
+                navigateToPage('courses');
+                showToast('Course saved successfully', 'success');
+            }, 1000);
+        }
+        
+        function resetCourseForm() {
+            document.getElementById('addCourseForm').reset();
+            showToast('Form reset', 'info');
+        }
+        
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastId = 'toast' + Date.now();
+            let icon = '';
+            let toastClass = 'custom-toast';
+            
+            switch(type) {
+                case 'success':
+                    icon = '<i class="bi bi-check-circle-fill me-2 text-success"></i>';
+                    toastClass += ' toast-success';
+                    break;
+                case 'error':
+                    icon = '<i class="bi bi-x-circle-fill me-2 text-danger"></i>';
+                    toastClass += ' toast-error';
+                    break;
+                case 'warning':
+                    icon = '<i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>';
+                    toastClass += ' toast-warning';
+                    break;
+                default:
+                    icon = '<i class="bi bi-info-circle-fill me-2 text-info"></i>';
+            }
+            
+            const toastHTML = `
+                <div id="${toastId}" class="${toastClass}">
+                    ${icon}
+                    <div>${message}</div>
+                </div>
+            `;
+            
+            document.getElementById('toastContainer').insertAdjacentHTML('beforeend', toastHTML);
+            
+            setTimeout(() => {
+                const toast = document.getElementById(toastId);
+                if (toast) {
+                    toast.style.animation = 'slideIn 0.3s ease reverse';
+                    setTimeout(() => toast.remove(), 300);
+                }
+            }, 5000);
+        }
+        
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Start with courses page
+            navigateToPage('courses');
+        });
+    </script>
+</body>
+</html>

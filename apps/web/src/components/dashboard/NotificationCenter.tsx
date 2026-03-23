@@ -179,7 +179,7 @@ export function NotificationCenter({ role, apiBase, batches }: NotificationCente
               style={{
                 cursor: "pointer",
                 borderLeft: n.is_read ? "3px solid transparent" : "3px solid var(--accent)",
-                background: n.is_read ? undefined : "rgba(75,226,194,0.06)",
+                background: n.is_read ? undefined : "rgba(233,69,96,0.06)",
               }}
               onClick={() => {
                 setExpandedId(expandedId === n.id ? null : n.id);

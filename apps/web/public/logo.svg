@@ -5,11 +5,11 @@
     <rect x="15" y="15" width="18" height="18" rx="2" fill="#ffffff" transform="rotate(-12 26 26)"/>
   </g>
   <!-- Tech2High text -->
-  <text x="62" y="34" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="bold" fill="currentColor" letter-spacing="-0.5">
-    <tspan>Tech</tspan><tspan fill="currentColor">2</tspan><tspan>High</tspan>
+  <text x="62" y="34" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="bold" letter-spacing="-0.5">
+    <tspan fill="#000000">Tech</tspan><tspan fill="#c0272d">2</tspan><tspan fill="#000000">High</tspan>
   </text>
   <!-- Tagline -->
-  <text x="65" y="52" font-family="Georgia, 'Times New Roman', serif" font-size="9" fill="currentColor" letter-spacing="1.2">
+  <text x="65" y="52" font-family="Georgia, 'Times New Roman', serif" font-size="9" fill="#000000" letter-spacing="1.2">
     ™ BUILD YOUR FUTURE
   </text>
 </svg>

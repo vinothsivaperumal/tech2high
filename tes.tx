@@ -1,0 +1,24 @@
+
+
+ 
+
+Read [](file:///Users/agatheshvelanvd/tech2high/tech2high/apps/api/src/utils/password.ts)
+
+Ran terminal command:  node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('password123', 12).then(h => console.log(h))"
+
+Ran terminal command:  PGPASSWORD=champs123 psql -h champs.c6f6s4gm2f4p.us-east-1.rds.amazonaws.com -U CHAMPS_PROD -d student_portal -c "
+INSERT INTO users (email, password_hash, role, full_name, is_active, login_enabled)
+VALUES
+  ('student@tech2high.com', '\$2a\$12\$cIMUxnmQV/NTAoggM06kWO1AKyV4jRPjDXPluEyHEzkt/Gvh4kJWu', 'student', 'Test Student', true, true),
+  ('trainer@tech2high.com', '\$2a\$12\$cIMUxnmQV/NTAoggM06kWO1AKyV4jRPjDXPluEyHEzkt/Gvh4kJWu', 'trainer', 'Test Trainer', true, true),
+  ('admin@tech2high.com', '\$2a\$12\$cIMUxnmQV/NTAoggM06kWO1AKyV4jRPjDXPluEyHEzkt/Gvh4kJWu', 'admin', 'Test Admin', true, true)
+ON CONFLICT (email) DO NOTHING;
+"
+
+Done. 2 new users were inserted (1 already existed). All three accounts:
+
+| Role | Email | Password |
+|------|-------|----------|
+| Student | `student@tech2high.com` | `password123` |
+| Trainer | `trainer@tech2high.com` | `password123` |
+| Admin | `admin@tech2high.com` | `password123` |
