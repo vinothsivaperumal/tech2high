@@ -136,3 +136,41 @@ export async function sendRegistrationEmail(params: {
 
   return { sent: true };
 }
+
+export async function sendNotificationEmail(params: {
+  to: string;
+  subject: string;
+  message: string;
+  fromName?: string;
+}): Promise<{ sent: boolean }> {
+  const transporter = createTransport();
+  if (!transporter) return { sent: false };
+
+  const html = `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f7fb;padding:24px 0;font-family:Arial,sans-serif;">
+    <tr><td align="center">
+      <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e5ecf5;">
+        <tr><td style="background:linear-gradient(135deg,#0f4c81,#17b890);padding:24px 28px;color:#ffffff;">
+          <h1 style="margin:0;font-size:22px;">Tech2High Notification</h1>
+        </td></tr>
+        <tr><td style="padding:24px 28px;color:#1f2937;">
+          ${params.fromName ? `<p style="margin:0 0 8px;font-size:13px;color:#6b7280;">From: ${params.fromName}</p>` : ""}
+          <h2 style="margin:0 0 12px;font-size:18px;">${params.subject}</h2>
+          <p style="margin:0;font-size:14px;line-height:1.6;white-space:pre-wrap;">${params.message}</p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>`;
+
+  const text = `${params.fromName ? `From: ${params.fromName}\n` : ""}${params.subject}\n\n${params.message}`;
+
+  await transporter.sendMail({
+    from: env.SMTP_FROM,
+    to: params.to,
+    subject: `[Tech2High] ${params.subject}`,
+    html,
+    text
+  });
+
+  return { sent: true };
+}

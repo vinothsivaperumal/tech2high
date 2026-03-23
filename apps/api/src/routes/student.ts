@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { createAuditLog } from "../services/audit";
 import { pool } from "../db/client";
 import { uploadBufferToS3 } from "../services/s3";
+import { sendNotificationEmail } from "../services/email";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 
@@ -160,15 +161,36 @@ studentRouter.get("/ip-requests", async (req, res) => {
   res.json({ requests: result.rows });
 });
 
-studentRouter.get("/courses", async (_req, res) => {
+studentRouter.get("/courses", async (req, res) => {
+  // Return courses assigned to the student's batch(es)
   const courses = await pool.query(
-    `SELECT id, title, description, created_at FROM courses ORDER BY created_at DESC`
+    `SELECT DISTINCT c.id, c.title, c.description, c.created_at, bc.sort_order
+     FROM courses c
+     INNER JOIN batch_courses bc ON bc.course_id = c.id
+     INNER JOIN batch_students bs ON bs.batch_id = bc.batch_id
+     WHERE bs.student_id = $1 AND c.is_active = TRUE
+     ORDER BY bc.sort_order, c.created_at DESC`,
+    [req.user!.id]
   );
   res.json({ courses: courses.rows });
 });
 
 studentRouter.get("/courses/:courseId/topics", async (req, res) => {
   const { courseId } = req.params;
+
+  // Verify the student has access to this course through their batch
+  const accessCheck = await pool.query(
+    `SELECT 1 FROM batch_courses bc
+     INNER JOIN batch_students bs ON bs.batch_id = bc.batch_id
+     WHERE bc.course_id = $1 AND bs.student_id = $2
+     LIMIT 1`,
+    [courseId, req.user!.id]
+  );
+  if (!accessCheck.rowCount) {
+    res.status(403).json({ message: "You do not have access to this course" });
+    return;
+  }
+
   const topicsResult = await pool.query(
     `SELECT id, title, sort_order FROM course_topics WHERE course_id = $1 ORDER BY sort_order, created_at`,
     [courseId]
@@ -187,4 +209,80 @@ studentRouter.get("/courses/:courseId/topics", async (req, res) => {
   }
   const topics = topicsResult.rows.map((t) => ({ ...t, videos: byTopic[t.id] ?? [] }));
   res.json({ topics });
+});
+
+// ── Batch YouTube Videos ─────────────────────────────────────────────────────
+
+studentRouter.get("/program", async (req, res) => {
+  const result = await pool.query(
+    `SELECT DISTINCT p.id, p.title, p.description
+     FROM programs p
+     INNER JOIN batches b ON b.program_id = p.id
+     INNER JOIN batch_students bs ON bs.batch_id = b.id
+     WHERE bs.student_id = $1`,
+    [req.user!.id]
+  );
+  res.json({ programs: result.rows });
+});
+
+studentRouter.get("/batch-videos", async (req, res) => {
+  const result = await pool.query(
+    `SELECT v.id, v.title, v.description, v.youtube_url, v.created_at, b.name AS batch_name, b.id AS batch_id
+     FROM videos v
+     INNER JOIN batches b ON b.id = v.batch_id
+     INNER JOIN batch_students bs ON bs.batch_id = b.id
+     WHERE bs.student_id = $1 AND v.youtube_url IS NOT NULL AND v.youtube_url != ''
+     ORDER BY b.name, v.created_at DESC`,
+    [req.user!.id]
+  );
+  res.json({ videos: result.rows });
+});
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+const studentNotifSchema = z.object({
+  subject: z.string().min(1).max(300),
+  message: z.string().min(1).max(5000)
+});
+
+studentRouter.get("/notifications", async (req, res) => {
+  const result = await pool.query(
+    `SELECT n.id, n.from_user_id, n.subject, n.message, n.is_read, n.created_at,
+            u.email AS from_email, u.full_name AS from_name
+     FROM notifications n
+     LEFT JOIN users u ON u.id = n.from_user_id
+     WHERE n.to_user_id = $1 OR n.to_role = 'student'
+     ORDER BY n.created_at DESC
+     LIMIT 100`,
+    [req.user!.id]
+  );
+  res.json({ notifications: result.rows });
+});
+
+studentRouter.post("/notifications", async (req, res) => {
+  const parsed = studentNotifSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ message: "Invalid body", errors: parsed.error.flatten() }); return; }
+
+  const { subject, message } = parsed.data;
+
+  // Students send notifications to admins
+  const admins = await pool.query("SELECT id, email FROM users WHERE role = 'admin'");
+  const senderResult = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [req.user!.id]);
+  const senderName = senderResult.rows[0]?.full_name || senderResult.rows[0]?.email || "Student";
+
+  for (const admin of admins.rows) {
+    await pool.query(
+      `INSERT INTO notifications (from_user_id, to_user_id, to_role, subject, message) VALUES ($1, $2, 'admin', $3, $4)`,
+      [req.user!.id, admin.id, subject, message]
+    );
+    void sendNotificationEmail({ to: admin.email, subject, message, fromName: senderName }).catch(() => {});
+  }
+
+  res.status(201).json({ message: "Notification sent to admin(s)" });
+});
+
+studentRouter.patch("/notifications/:notifId/read", async (req, res) => {
+  const { notifId } = req.params;
+  await pool.query("UPDATE notifications SET is_read = TRUE WHERE id = $1", [notifId]);
+  res.json({ message: "Marked as read" });
 });

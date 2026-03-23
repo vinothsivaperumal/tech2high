@@ -6,9 +6,14 @@ import { apiRequest } from "../../lib/api";
 import { DashboardMenu } from "../DashboardMenu";
 import { ProfileManager } from "../ProfileManager";
 import { AdminStudentsSection } from "./AdminStudentsSection";
+import { AdminTrainersSection } from "./AdminTrainersSection";
 import { CoursesSection } from "./CoursesSection";
+import { BatchVideoManager } from "./BatchVideoManager";
+import { BatchManager } from "./BatchManager";
+import { ProgramManager } from "./ProgramManager";
+import { NotificationCenter } from "./NotificationCenter";
 
-type AdminSection = "requests" | "audit" | "students" | "courses" | "profile";
+type AdminSection = "requests" | "audit" | "students" | "trainers" | "batches" | "videos" | "programs" | "courses" | "notifications" | "profile";
 
 interface AdminIpRequest {
   id: string;
@@ -101,22 +106,9 @@ export function AdminDashboard() {
     }
   }
 
-  return (
-    <div className="dashboard-layout">
-      <DashboardMenu
-        title="Admin Dashboard"
-        active={section}
-        onChange={setSection}
-        items={[
-          { key: "requests", label: "IP Approval Queue", hint: "Approve or reject student requests" },
-          { key: "students", label: "Students", hint: "View and manage student profiles" },
-          { key: "courses", label: "Courses", hint: "Manage courses, topics and videos" },
-          { key: "audit", label: "Audit Logs", hint: "Security and activity history" },
-          { key: "profile", label: "Registration Info", hint: "Get and update your details" }
-        ]}
-      />
-
-      <div className="menu-content">
+  function renderContent() {
+    return (
+      <div>
         {loading ? <p className="muted">Loading dashboard...</p> : null}
         {error ? <p className="message error">{error}</p> : null}
         {message ? <p className="message success">{message}</p> : null}
@@ -214,8 +206,48 @@ export function AdminDashboard() {
 
         {!loading && section === "students" ? <AdminStudentsSection /> : null}
 
+        {!loading && section === "trainers" ? <AdminTrainersSection /> : null}
+
         {section === "courses" ? <CoursesSection manage /> : null}
+
+        {!loading && section === "programs" ? <ProgramManager /> : null}
+
+        {!loading && section === "batches" ? <BatchManager /> : null}
+
+        {!loading && section === "videos" ? <BatchVideoManager /> : null}
+
+        {!loading && section === "notifications" ? <NotificationCenter role="admin" apiBase="/admin" /> : null}
       </div>
-    </div>
+    );
+  }
+
+  return (
+    <DashboardMenu
+      sections={[
+        {
+          title: "MANAGEMENT",
+          items: [
+            { key: "requests" as AdminSection, label: "IP Approval Queue", icon: "🛡" },
+            { key: "students" as AdminSection, label: "Students", icon: "🎓" },
+            { key: "trainers" as AdminSection, label: "Trainers", icon: "👨‍🏫" },
+            { key: "batches" as AdminSection, label: "Batches", icon: "📦" },
+            { key: "programs" as AdminSection, label: "Programs", icon: "📋" },
+            { key: "videos" as AdminSection, label: "Videos", icon: "🎬" },
+            { key: "courses" as AdminSection, label: "Courses", icon: "📚" },
+            { key: "notifications" as AdminSection, label: "Notifications", icon: "🔔" },
+            { key: "audit" as AdminSection, label: "Audit Logs", icon: "📋" },
+          ],
+        },
+        {
+          title: "ACCOUNT",
+          items: [
+            { key: "profile" as AdminSection, label: "Registration Info", icon: "👤" },
+          ],
+        },
+      ]}
+      active={section}
+      onChange={setSection}
+      mainContent={renderContent()}
+    />
   );
 }

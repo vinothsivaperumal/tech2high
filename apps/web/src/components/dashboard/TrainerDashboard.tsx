@@ -5,8 +5,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { apiRequest } from "../../lib/api";
 import { DashboardMenu } from "../DashboardMenu";
 import { ProfileManager } from "../ProfileManager";
+import { NotificationCenter } from "./NotificationCenter";
 
-type TrainerSection = "overview" | "batches" | "profile";
+type TrainerSection = "overview" | "batches" | "notifications" | "profile";
 
 interface Batch {
   id: string;
@@ -59,54 +60,48 @@ export function TrainerDashboard() {
     }
   }
 
-  return (
-    <div className="dashboard-layout">
-      <DashboardMenu
-        title="Trainer Dashboard"
-        active={section}
-        onChange={setSection}
-        items={[
-          { key: "overview", label: "Overview", hint: "Batch summary and activity" },
-          { key: "batches", label: "Batch Manager", hint: "Create and review your batches" },
-          { key: "profile", label: "Registration Info", hint: "Get and update your details" }
-        ]}
-      />
+  function renderContent() {
+    if (loading) return <p className="muted">Loading dashboard…</p>;
 
-      <div className="menu-content">
-        {loading ? <p className="muted">Loading dashboard...</p> : null}
-        {error ? <p className="message error">{error}</p> : null}
-        {message ? <p className="message success">{message}</p> : null}
+    switch (section) {
+      case "overview":
+        return (
+          <>
+            {error ? <p className="message error">{error}</p> : null}
+            {message ? <p className="message success">{message}</p> : null}
+            <div className="grid">
+              <section className="card span-4">
+                <header className="card-header">
+                  <h3>Total Batches</h3>
+                </header>
+                <p className="muted" style={{ fontSize: "1.3rem" }}>
+                  {batches.length}
+                </p>
+              </section>
 
-        {!loading && section === "overview" ? (
-          <div className="grid">
-            <section className="card span-4">
-              <header className="card-header">
-                <h3>Total Batches</h3>
-              </header>
-              <p className="muted" style={{ fontSize: "1.3rem" }}>
-                {batches.length}
-              </p>
-            </section>
+              <section className="card span-8">
+                <header className="card-header">
+                  <h3>Recent Batches</h3>
+                </header>
+                <ul className="list">
+                  {batches.slice(0, 6).map((batch) => (
+                    <li className="list-item" key={batch.id}>
+                      <strong>{batch.name}</strong>
+                      <p className="muted">Created: {new Date(batch.created_at).toLocaleString()}</p>
+                    </li>
+                  ))}
+                  {!batches.length ? <li className="list-item muted">No batches created yet.</li> : null}
+                </ul>
+              </section>
+            </div>
+          </>
+        );
 
-            <section className="card span-8">
-              <header className="card-header">
-                <h3>Recent Batches</h3>
-              </header>
-              <ul className="list">
-                {batches.slice(0, 6).map((batch) => (
-                  <li className="list-item" key={batch.id}>
-                    <strong>{batch.name}</strong>
-                    <p className="muted">Created: {new Date(batch.created_at).toLocaleString()}</p>
-                  </li>
-                ))}
-                {!batches.length ? <li className="list-item muted">No batches created yet.</li> : null}
-              </ul>
-            </section>
-          </div>
-        ) : null}
-
-        {!loading && section === "batches" ? (
+      case "batches":
+        return (
           <div className="stack">
+            {error ? <p className="message error">{error}</p> : null}
+            {message ? <p className="message success">{message}</p> : null}
             <section className="card">
               <header className="card-header">
                 <h3>Create New Batch</h3>
@@ -122,9 +117,8 @@ export function TrainerDashboard() {
                     required
                   />
                 </label>
-
                 <button type="submit" className="button" disabled={submitting}>
-                  {submitting ? "Creating..." : "Create Batch"}
+                  {submitting ? "Creating…" : "Create Batch"}
                 </button>
               </form>
             </section>
@@ -145,10 +139,46 @@ export function TrainerDashboard() {
               </ul>
             </section>
           </div>
-        ) : null}
+        );
 
-        {section === "profile" ? <ProfileManager /> : null}
-      </div>
-    </div>
+      case "profile":
+        return <ProfileManager />;
+
+      case "notifications":
+        return (
+          <NotificationCenter
+            role="trainer"
+            apiBase="/trainer"
+            batches={batches.map((b) => ({ id: b.id, name: b.name }))}
+          />
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  return (
+    <DashboardMenu
+      sections={[
+        {
+          title: "TRAINING",
+          items: [
+            { key: "overview" as TrainerSection, label: "Overview", icon: "📊" },
+            { key: "batches" as TrainerSection, label: "Batch Manager", icon: "📦" },
+            { key: "notifications" as TrainerSection, label: "Notifications", icon: "🔔" },
+          ],
+        },
+        {
+          title: "ACCOUNT",
+          items: [
+            { key: "profile" as TrainerSection, label: "Registration Info", icon: "👤" },
+          ],
+        },
+      ]}
+      active={section}
+      onChange={setSection}
+      mainContent={renderContent()}
+    />
   );
 }

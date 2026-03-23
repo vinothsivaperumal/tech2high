@@ -36,6 +36,8 @@ ALTER TABLE users ADD COLUMN IF NOT EXISTS country TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS institute TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS experience_level TEXT;
 ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW();
+ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ;
 
 CREATE TABLE IF NOT EXISTS batches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -128,5 +130,53 @@ CREATE TABLE IF NOT EXISTS course_videos (
   title TEXT NOT NULL,
   youtube_url TEXT NOT NULL,
   sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- ── Programs ─────────────────────────────────────────────────────────────────
+
+CREATE TABLE IF NOT EXISTS programs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  description TEXT,
+  created_by UUID REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS program_courses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  program_id UUID NOT NULL REFERENCES programs(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(program_id, course_id)
+);
+
+ALTER TABLE batches ADD COLUMN IF NOT EXISTS program_id UUID REFERENCES programs(id) ON DELETE SET NULL;
+ALTER TABLE batches ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+ALTER TABLE programs ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE courses ADD COLUMN IF NOT EXISTS is_active BOOLEAN NOT NULL DEFAULT TRUE;
+
+CREATE TABLE IF NOT EXISTS batch_courses (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  batch_id UUID NOT NULL REFERENCES batches(id) ON DELETE CASCADE,
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(batch_id, course_id)
+);
+
+-- YouTube video links per batch
+ALTER TABLE videos ADD COLUMN IF NOT EXISTS youtube_url TEXT;
+
+CREATE TABLE IF NOT EXISTS notifications (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  from_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  to_user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  to_role user_role,
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  is_read BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

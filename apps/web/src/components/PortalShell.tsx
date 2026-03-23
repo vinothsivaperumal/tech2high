@@ -1,8 +1,7 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ReactNode, useEffect, useState } from "react";
 
 import { clearSession, getSessionUser, SessionUser } from "../lib/auth";
 
@@ -12,8 +11,17 @@ interface PortalShellProps {
   children: ReactNode;
 }
 
+function getInitials(name: string | null | undefined): string {
+  if (!name) return "??";
+  return name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+}
+
 export function PortalShell({ role, title, children }: PortalShellProps) {
-  const pathname = usePathname();
   const router = useRouter();
   const [user, setUser] = useState<SessionUser | null>(null);
 
@@ -21,7 +29,7 @@ export function PortalShell({ role, title, children }: PortalShellProps) {
     const sessionUser = getSessionUser();
 
     if (!sessionUser) {
-      router.replace("/login");
+      router.replace(`/${role}/login`);
       return;
     }
 
@@ -33,14 +41,6 @@ export function PortalShell({ role, title, children }: PortalShellProps) {
     setUser(sessionUser);
   }, [role, router]);
 
-  const links = useMemo(() => {
-    return [
-      { href: "/student", label: "Student", visible: role === "student" },
-      { href: "/trainer", label: "Trainer", visible: role === "trainer" },
-      { href: "/admin", label: "Admin", visible: role === "admin" }
-    ].filter((link) => link.visible);
-  }, [role]);
-
   if (!user) {
     return (
       <div className="page-wrap">
@@ -49,38 +49,34 @@ export function PortalShell({ role, title, children }: PortalShellProps) {
     );
   }
 
+  const roleLabel =
+    role === "student" ? "Student" : role === "trainer" ? "Trainer" : "Admin";
+
   return (
-    <div className="page-wrap">
-      <div className="aura aura-one" />
-      <div className="aura aura-two" />
-      <div className="shell">
-        <header className="topbar">
-          <div>
-            <p className="eyebrow">Tech2High Portal</p>
-            <h1>{title}</h1>
-            <p className="muted">Signed in as {user.fullName ? `${user.fullName} (${user.email})` : user.email}</p>
-          </div>
-          <button
-            className="button secondary"
-            onClick={() => {
-              clearSession();
-              router.replace("/login");
-            }}
-          >
-            Logout
-          </button>
-        </header>
-
-        <nav className="tabs">
-          {links.map((link) => (
-            <Link key={link.href} href={link.href} className={pathname === link.href ? "tab active" : "tab"}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
-        <main>{children}</main>
-      </div>
-    </div>
+    <PortalShellContext.Provider
+      value={{ user, roleLabel, title, onLogout: () => { clearSession(); router.replace(`/${role}/login`); } }}
+    >
+      {children}
+    </PortalShellContext.Provider>
   );
 }
+
+/* ── Context so children can access user / logout ─── */
+import { createContext, useContext } from "react";
+
+interface ShellCtx {
+  user: SessionUser;
+  roleLabel: string;
+  title: string;
+  onLogout: () => void;
+}
+
+const PortalShellContext = createContext<ShellCtx | null>(null);
+
+export function usePortalShell() {
+  const ctx = useContext(PortalShellContext);
+  if (!ctx) throw new Error("usePortalShell must be used inside PortalShell");
+  return ctx;
+}
+
+export { getInitials };

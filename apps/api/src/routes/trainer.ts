@@ -6,6 +6,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 import { createAuditLog } from "../services/audit";
 import { pool } from "../db/client";
 import { uploadBufferToS3 } from "../services/s3";
+import { sendNotificationEmail } from "../services/email";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 500 * 1024 * 1024 } });
 
@@ -238,4 +239,68 @@ trainerRouter.get("/batches/:batchId/submissions", async (req, res) => {
   );
 
   res.json({ submissions: result.rows });
+});
+
+// ── Notifications ────────────────────────────────────────────────────────────
+
+const trainerNotifSchema = z.object({
+  subject: z.string().min(1).max(300),
+  message: z.string().min(1).max(5000),
+  batchId: z.string().uuid().optional()
+});
+
+trainerRouter.get("/notifications", async (req, res) => {
+  const result = await pool.query(
+    `SELECT n.id, n.from_user_id, n.subject, n.message, n.is_read, n.created_at,
+            u.email AS from_email, u.full_name AS from_name
+     FROM notifications n
+     LEFT JOIN users u ON u.id = n.from_user_id
+     WHERE n.to_user_id = $1 OR n.to_role = 'trainer'
+     ORDER BY n.created_at DESC
+     LIMIT 100`,
+    [req.user!.id]
+  );
+  res.json({ notifications: result.rows });
+});
+
+trainerRouter.post("/notifications", async (req, res) => {
+  const parsed = trainerNotifSchema.safeParse(req.body);
+  if (!parsed.success) { res.status(400).json({ message: "Invalid body", errors: parsed.error.flatten() }); return; }
+
+  const { subject, message, batchId } = parsed.data;
+  const senderResult = await pool.query("SELECT full_name, email FROM users WHERE id = $1", [req.user!.id]);
+  const senderName = senderResult.rows[0]?.full_name || senderResult.rows[0]?.email || "Trainer";
+
+  if (batchId) {
+    // Send to all students in the batch
+    const students = await pool.query(
+      `SELECT u.id, u.email FROM users u INNER JOIN batch_students bs ON bs.student_id = u.id WHERE bs.batch_id = $1`,
+      [batchId]
+    );
+    for (const s of students.rows) {
+      await pool.query(
+        `INSERT INTO notifications (from_user_id, to_user_id, to_role, subject, message) VALUES ($1, $2, 'student', $3, $4)`,
+        [req.user!.id, s.id, subject, message]
+      );
+      void sendNotificationEmail({ to: s.email, subject, message, fromName: senderName }).catch(() => {});
+    }
+    res.status(201).json({ message: `Notification sent to ${students.rowCount} student(s) in batch` });
+  } else {
+    // Send to admins
+    const admins = await pool.query("SELECT id, email FROM users WHERE role = 'admin'");
+    for (const admin of admins.rows) {
+      await pool.query(
+        `INSERT INTO notifications (from_user_id, to_user_id, to_role, subject, message) VALUES ($1, $2, 'admin', $3, $4)`,
+        [req.user!.id, admin.id, subject, message]
+      );
+      void sendNotificationEmail({ to: admin.email, subject, message, fromName: senderName }).catch(() => {});
+    }
+    res.status(201).json({ message: "Notification sent to admin(s)" });
+  }
+});
+
+trainerRouter.patch("/notifications/:notifId/read", async (req, res) => {
+  const { notifId } = req.params;
+  await pool.query("UPDATE notifications SET is_read = TRUE WHERE id = $1", [notifId]);
+  res.json({ message: "Marked as read" });
 });

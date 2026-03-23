@@ -10,7 +10,7 @@ const envSchema = z.object({
   API_PORT: z.coerce.number().default(4000),
   DATABASE_URL: z.string().min(1),
   JWT_SECRET: z.string().min(16),
-  CORS_ORIGIN: z.string().default("http://devportal.tech2high.com"),
+  CORS_ORIGIN: z.string().default("http://localhost:3000"),
   AWS_REGION: z.string().min(1),
   AWS_ACCESS_KEY_ID: z.string().min(1),
   AWS_SECRET_ACCESS_KEY: z.string().min(1),

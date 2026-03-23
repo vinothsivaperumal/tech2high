@@ -13,9 +13,17 @@ import { metaRouter } from "./routes/meta";
 const app = express();
 
 app.use(helmet());
+
+const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
 app.use(
   cors({
-    origin: env.CORS_ORIGIN,
+    origin(requestOrigin, callback) {
+      if (!requestOrigin || allowedOrigins.includes(requestOrigin)) {
+        callback(null, requestOrigin ?? true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true
   })
 );

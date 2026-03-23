@@ -325,9 +325,18 @@ export function ProfileManager() {
           <label>
             Phone
             <input
+              type="tel"
               value={form.phone}
-              onChange={(event) => setForm((current) => ({ ...current, phone: event.target.value }))}
-              placeholder="+91 9876543210"
+              onChange={(event) => {
+                const digits = event.target.value.replace(/\D/g, "").slice(0, 10);
+                let formatted = "";
+                if (digits.length > 0) formatted = `(${digits.slice(0, 3)}`;
+                if (digits.length >= 4) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}`;
+                if (digits.length >= 7) formatted = `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+                setForm((current) => ({ ...current, phone: formatted }));
+              }}
+              placeholder="(555) 123-4567"
+              maxLength={14}
             />
           </label>
 

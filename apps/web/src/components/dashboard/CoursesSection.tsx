@@ -8,7 +8,16 @@ interface Course {
   id: string;
   title: string;
   description: string | null;
+  is_active: boolean;
+  topic_count?: number;
+  video_count?: number;
   created_at: string;
+}
+
+interface CourseBatch {
+  id: string;
+  name: string;
+  is_active: boolean;
 }
 
 interface CourseVideo {
@@ -54,6 +63,10 @@ export function CoursesSection({ manage = false }: { manage?: boolean }) {
   const [addingVideoFor, setAddingVideoFor] = useState<string | null>(null);
   const [videoForm, setVideoForm] = useState({ title: "", youtubeUrl: "", sortOrder: "0" });
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+
+  // Batches assigned to selected course (admin only)
+  const [courseBatches, setCourseBatches] = useState<CourseBatch[]>([]);
 
   useEffect(() => {
     void loadCourses();
@@ -80,12 +93,22 @@ export function CoursesSection({ manage = false }: { manage?: boolean }) {
     setPlayingVideo(null);
     setAddingTopicFor(null);
     setAddingVideoFor(null);
+    setCourseBatches([]);
     setTopicsLoading(true);
     setError("");
     try {
       const base = manage ? "/admin" : "/student";
-      const res = await apiRequest<{ topics: CourseTopic[] }>(`${base}/courses/${course.id}/topics`);
-      setTopics(res.topics);
+      const promises: Promise<unknown>[] = [
+        apiRequest<{ topics: CourseTopic[] }>(`${base}/courses/${course.id}/topics`),
+      ];
+      if (manage) {
+        promises.push(apiRequest<{ batches: CourseBatch[] }>(`/admin/courses/${course.id}/batches`));
+      }
+      const results = await Promise.all(promises);
+      setTopics((results[0] as { topics: CourseTopic[] }).topics);
+      if (manage && results[1]) {
+        setCourseBatches((results[1] as { batches: CourseBatch[] }).batches);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load topics");
     } finally {
@@ -157,9 +180,25 @@ export function CoursesSection({ manage = false }: { manage?: boolean }) {
 
   const embedUrl = playingVideo ? youtubeEmbedUrl(playingVideo.youtube_url) : null;
 
+  async function toggleCourseStatus(course: Course) {
+    setError("");
+    setMessage("");
+    try {
+      await apiRequest(`/admin/courses/${course.id}/status`, "PATCH", { isActive: !course.is_active });
+      setMessage(`Course ${course.is_active ? "deactivated" : "activated"}.`);
+      setCourses((prev) => prev.map((c) => c.id === course.id ? { ...c, is_active: !c.is_active } : c));
+      if (selectedCourse?.id === course.id) {
+        setSelectedCourse({ ...course, is_active: !course.is_active });
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to update status");
+    }
+  }
+
   return (
     <div className="stack">
       {error ? <p className="message error">{error}</p> : null}
+      {message ? <p className="message success">{message}</p> : null}
 
       {/* ── YouTube player ── */}
       {playingVideo && embedUrl ? (
@@ -242,10 +281,26 @@ export function CoursesSection({ manage = false }: { manage?: boolean }) {
                   }}
                   onClick={() => void selectCourse(c)}
                 >
-                  <strong>{c.title}</strong>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <strong>{c.title}</strong>
+                    {manage ? (
+                      <span style={{
+                        fontSize: "0.6rem", padding: "0.1rem 0.35rem", borderRadius: "0.25rem", fontWeight: 600,
+                        background: c.is_active ? "rgba(46,204,113,0.15)" : "rgba(231,76,60,0.15)",
+                        color: c.is_active ? "#2ecc71" : "#e74c3c"
+                      }}>
+                        {c.is_active ? "Active" : "Inactive"}
+                      </span>
+                    ) : null}
+                  </div>
                   {c.description ? (
                     <p className="muted" style={{ fontSize: "0.8rem" }}>
                       {c.description}
+                    </p>
+                  ) : null}
+                  {manage && (c.topic_count !== undefined || c.video_count !== undefined) ? (
+                    <p className="muted" style={{ fontSize: "0.72rem" }}>
+                      {c.topic_count ?? 0} topic{(c.topic_count ?? 0) !== 1 ? "s" : ""} · {c.video_count ?? 0} video{(c.video_count ?? 0) !== 1 ? "s" : ""}
                     </p>
                   ) : null}
                 </li>
@@ -263,17 +318,48 @@ export function CoursesSection({ manage = false }: { manage?: boolean }) {
             <section className="card">
               <header className="card-header">
                 <h3>{selectedCourse.title}</h3>
-                {manage ? (
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ marginLeft: "auto" }}
-                    onClick={() => setAddingTopicFor((v) => (v ? null : selectedCourse.id))}
-                  >
-                    {addingTopicFor === selectedCourse.id ? "Cancel" : "+ Topic"}
-                  </button>
-                ) : null}
+                <div style={{ display: "flex", gap: "0.4rem", marginLeft: "auto" }}>
+                  {manage ? (
+                    <>
+                      <button
+                        type="button"
+                        className={selectedCourse.is_active ? "button danger" : "button"}
+                        style={{ fontSize: "0.75rem" }}
+                        onClick={() => void toggleCourseStatus(selectedCourse)}
+                      >
+                        {selectedCourse.is_active ? "Deactivate" : "Activate"}
+                      </button>
+                      <button
+                        type="button"
+                        className="button"
+                        onClick={() => setAddingTopicFor((v) => (v ? null : selectedCourse.id))}
+                      >
+                        {addingTopicFor === selectedCourse.id ? "Cancel" : "+ Topic"}
+                      </button>
+                    </>
+                  ) : null}
+                </div>
               </header>
+
+              {/* Batches using this course (admin only) */}
+              {manage && courseBatches.length > 0 ? (
+                <div style={{ marginBottom: "0.75rem", padding: "0.5rem", background: "rgba(255,255,255,0.03)", borderRadius: "0.5rem" }}>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--muted)", marginBottom: "0.3rem" }}>
+                    Assigned to {courseBatches.length} batch{courseBatches.length !== 1 ? "es" : ""}
+                  </div>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.3rem" }}>
+                    {courseBatches.map((b) => (
+                      <span key={b.id} style={{
+                        fontSize: "0.7rem", padding: "0.15rem 0.4rem", borderRadius: "0.25rem",
+                        background: b.is_active ? "rgba(46,204,113,0.1)" : "rgba(231,76,60,0.1)",
+                        color: b.is_active ? "#2ecc71" : "#e74c3c", fontWeight: 500
+                      }}>
+                        {b.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
 
               {manage && addingTopicFor === selectedCourse.id ? (
                 <form
