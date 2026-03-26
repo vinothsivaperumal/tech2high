@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 
 import { env } from "../config/env";
+import { UserRole } from "../types/roles";
 
 let warnedMissingSmtpConfig = false;
 
@@ -39,7 +40,7 @@ function toRoleTitle(role: "student" | "trainer" | "admin"): string {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-function buildWelcomeTemplate(params: {
+function buildWelcomeTemplate(params: { 
   fullName: string;
   email: string;
   role: "student" | "trainer" | "admin";
@@ -108,9 +109,9 @@ function buildWelcomeTemplate(params: {
 }
 
 export async function sendRegistrationEmail(params: {
-  to: string;
-  fullName: string | null;
-  role: "student" | "trainer" | "admin";
+  to: string; 
+  fullName: string | null; 
+  role: UserRole; 
 }): Promise<{ sent: boolean }> {
   const transporter = createTransport();
   if (!transporter) {
@@ -138,10 +139,10 @@ export async function sendRegistrationEmail(params: {
 }
 
 export async function sendNotificationEmail(params: {
-  to: string;
-  subject: string;
-  message: string;
-  fromName?: string;
+  to: string; 
+  subject: string; 
+  message: string; 
+  fromName?: string; 
 }): Promise<{ sent: boolean }> {
   const transporter = createTransport();
   if (!transporter) return { sent: false };

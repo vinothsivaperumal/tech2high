@@ -3,11 +3,12 @@
 
 import jwt from "jsonwebtoken";
 import { env } from "../config/env";
+import type { UserRole } from "../types/roles";
 
 export interface RefreshTokenPayload {
   id: string;
   email: string;
-  role: "student" | "trainer" | "admin";
+  role: UserRole;
   type: "refresh";
 }
 

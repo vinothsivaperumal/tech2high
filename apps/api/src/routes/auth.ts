@@ -37,6 +37,7 @@ import { createAuditLog } from "../services/audit";
 import { sendRegistrationEmail } from "../services/email";
 import { pool } from "../db/client";
 import { signAuthToken } from "../utils/jwt";
+import { ROLES, UserRole } from "../types/roles";
 import { signRefreshToken } from "../utils/refreshToken";
 import { hashPassword, verifyPassword } from "../utils/password";
 
@@ -63,9 +64,9 @@ const registerProfileSchema = z.object({
 
 const registerSchema = z
   .object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(["student", "trainer", "admin"]).default("student")
+    email: z.string().email(),
+    password: z.string().min(8),
+    role: z.enum(ROLES).default("student")
   })
   .merge(registerProfileSchema);
 
@@ -107,7 +108,7 @@ const userSelectFields = `
 interface UserRow {
   id: string;
   email: string;
-  role: "student" | "trainer" | "admin";
+  role: UserRole;
   full_name: string | null;
   phone: string | null;
   city: string | null;

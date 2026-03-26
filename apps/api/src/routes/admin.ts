@@ -4,6 +4,7 @@ import { z } from "zod";
 
 
 import { requireAuth, requireRole } from "../middleware/auth";
+import { ROLES, UserRole } from "../types/roles";
 import { createAuditLog } from "../services/audit";
 import { pool } from "../db/client";
 import { allowIngressForStudentIp } from "../services/securityGroup";
@@ -34,7 +35,7 @@ const eventSchema = z.object({
 const assignParticipantsSchema = z.object({
   eventId: z.string().uuid(),
   userIds: z.array(z.string().uuid()),
-  role: z.enum(["student", "trainer", "admin"])
+  role: z.enum(ROLES)
 });
 
 // Event Management
@@ -1066,7 +1067,7 @@ adminRouter.post("/batches/:batchId/sync-program-courses", async (req, res) => {
 
 const notificationSchema = z.object({
   toUserId: z.string().uuid().optional(),
-  toRole: z.enum(["student", "trainer", "admin"]).optional(),
+  toRole: z.enum(ROLES).optional(),
   subject: z.string().min(1).max(300),
   message: z.string().min(1).max(5000)
 });
