@@ -1,0 +1,1 @@
+self.__NEXT_FONT_MANIFEST="{\"pages\":{},\"app\":{\"/Users/agatheshvelanvd/tech2high/tech2high/apps/web/src/app/layout\":[\"static/media/d3ebbfd689654d3a-s.p.woff2\",\"static/media/98e207f02528a563-s.p.woff2\",\"static/media/f3f7e95f2dbc4fe4-s.p.woff2\"]},\"appUsingSizeAdjust\":true,\"pagesUsingSizeAdjust\":false}"

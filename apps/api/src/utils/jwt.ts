@@ -10,8 +10,10 @@ export interface AuthTokenPayload {
   role: UserRole;
 }
 
+
+// Access token: 1 hour expiry (security best practice)
 export function signAuthToken(payload: AuthTokenPayload): string {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: "12h" });
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: "1h" });
 }
 
 export function verifyAuthToken(token: string): AuthTokenPayload {

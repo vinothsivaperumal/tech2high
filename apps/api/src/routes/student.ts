@@ -42,6 +42,11 @@ function hasAllowedExtension(fileName: string): boolean {
 }
 
 studentRouter.get("/batches", async (req, res) => {
+  let page = parseInt(req.query.page as string) || 1;
+  let limit = parseInt(req.query.limit as string) || 20;
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 20;
+  const offset = (page - 1) * limit;
   const result = await pool.query(
     `SELECT b.id, b.name, b.zoom_link, b.created_at,
             u.full_name AS trainer_name, u.email AS trainer_email
@@ -49,13 +54,19 @@ studentRouter.get("/batches", async (req, res) => {
      INNER JOIN batch_students bs ON bs.batch_id = b.id
      LEFT JOIN users u ON u.id = b.trainer_id
      WHERE bs.student_id = $1 AND b.is_active = TRUE
-     ORDER BY b.created_at DESC`,
-    [req.user!.id]
+     ORDER BY b.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [req.user!.id, limit, offset]
   );
-  res.json({ batches: result.rows });
+  res.json({ batches: result.rows, page, limit });
 });
 
 studentRouter.get("/videos", async (req, res) => {
+  let page = parseInt(req.query.page as string) || 1;
+  let limit = parseInt(req.query.limit as string) || 20;
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 20;
+  const offset = (page - 1) * limit;
   const result = await pool.query(
     `
     SELECT v.id, v.title, v.description, v.s3_key, v.created_at, b.name AS batch_name
@@ -64,14 +75,19 @@ studentRouter.get("/videos", async (req, res) => {
     INNER JOIN batch_students bs ON bs.batch_id = b.id
     WHERE bs.student_id = $1
     ORDER BY v.created_at DESC
+    LIMIT $2 OFFSET $3
     `,
-    [req.user!.id]
+    [req.user!.id, limit, offset]
   );
-
-  res.json({ videos: result.rows });
+  res.json({ videos: result.rows, page, limit });
 });
 
 studentRouter.get("/assignments", async (req, res) => {
+  let page = parseInt(req.query.page as string) || 1;
+  let limit = parseInt(req.query.limit as string) || 20;
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 20;
+  const offset = (page - 1) * limit;
   const result = await pool.query(
     `
     SELECT a.id, a.title, a.instructions, a.due_at, a.created_at, b.name AS batch_name
@@ -80,11 +96,11 @@ studentRouter.get("/assignments", async (req, res) => {
     INNER JOIN batch_students bs ON bs.batch_id = b.id
     WHERE bs.student_id = $1
     ORDER BY a.created_at DESC
+    LIMIT $2 OFFSET $3
     `,
-    [req.user!.id]
+    [req.user!.id, limit, offset]
   );
-
-  res.json({ assignments: result.rows });
+  res.json({ assignments: result.rows, page, limit });
 });
 
 studentRouter.post("/assignments/:assignmentId/submissions", upload.single("file"), async (req, res) => {
@@ -189,17 +205,22 @@ studentRouter.get("/ip-requests", async (req, res) => {
 });
 
 studentRouter.get("/courses", async (req, res) => {
-  // Return courses assigned to the student's batch(es)
+  let page = parseInt(req.query.page as string) || 1;
+  let limit = parseInt(req.query.limit as string) || 20;
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 20;
+  const offset = (page - 1) * limit;
   const courses = await pool.query(
     `SELECT DISTINCT c.id, c.title, c.description, c.created_at, bc.sort_order
      FROM courses c
      INNER JOIN batch_courses bc ON bc.course_id = c.id
      INNER JOIN batch_students bs ON bs.batch_id = bc.batch_id
      WHERE bs.student_id = $1 AND c.is_active = TRUE
-     ORDER BY bc.sort_order, c.created_at DESC`,
-    [req.user!.id]
+     ORDER BY bc.sort_order, c.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [req.user!.id, limit, offset]
   );
-  res.json({ courses: courses.rows });
+  res.json({ courses: courses.rows, page, limit });
 });
 
 studentRouter.get("/courses/:courseId/topics", async (req, res) => {
@@ -273,6 +294,11 @@ const studentNotifSchema = z.object({
 });
 
 studentRouter.get("/notifications", async (req, res) => {
+  let page = parseInt(req.query.page as string) || 1;
+  let limit = parseInt(req.query.limit as string) || 20;
+  if (page < 1) page = 1;
+  if (limit < 1 || limit > 100) limit = 20;
+  const offset = (page - 1) * limit;
   const result = await pool.query(
     `SELECT n.id, n.from_user_id, n.subject, n.message, n.is_read, n.created_at,
             u.email AS from_email, u.full_name AS from_name
@@ -280,10 +306,10 @@ studentRouter.get("/notifications", async (req, res) => {
      LEFT JOIN users u ON u.id = n.from_user_id
      WHERE n.to_user_id = $1 OR n.to_role = 'student'
      ORDER BY n.created_at DESC
-     LIMIT 100`,
-    [req.user!.id]
+     LIMIT $2 OFFSET $3`,
+    [req.user!.id, limit, offset]
   );
-  res.json({ notifications: result.rows });
+  res.json({ notifications: result.rows, page, limit });
 });
 
 studentRouter.post("/notifications", async (req, res) => {

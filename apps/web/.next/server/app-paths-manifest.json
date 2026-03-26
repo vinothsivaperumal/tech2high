@@ -1,0 +1,4 @@
+{
+  "/trainer/login/page": "app/trainer/login/page.js",
+  "/admin/page": "app/admin/page.js"
+}

@@ -1,11 +1,1 @@
 node_modules
-.env
-.env.local
-.env.*.local
-*.log
-coverage
-.next
-dist
-.DS_Store
-uploads
-deploy/keys

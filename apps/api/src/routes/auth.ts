@@ -1,3 +1,34 @@
+// Refresh token endpoint
+import { verifyRefreshToken } from "../utils/refreshToken";
+
+authRouter.post("/refresh", async (req, res) => {
+  const { refreshToken } = req.body;
+  if (!refreshToken || typeof refreshToken !== "string") {
+    res.status(400).json({ message: "Missing refresh token" });
+    return;
+  }
+  try {
+    const payload = verifyRefreshToken(refreshToken);
+    // Optionally: check user still exists and is active
+    const result = await pool.query(
+      `SELECT ${userSelectFields} FROM users WHERE id = $1`,
+      [payload.id]
+    );
+    if (!result.rowCount) {
+      res.status(404).json({ message: "User not found" });
+      return;
+    }
+    const user = mapUser(result.rows[0] as UserRow);
+    const token = signAuthToken({
+      id: user.id,
+      email: user.email,
+      role: user.role
+    });
+    res.json({ token, user });
+  } catch (err) {
+    res.status(401).json({ message: "Invalid or expired refresh token" });
+  }
+});
 import { Router } from "express";
 import { z } from "zod";
 
@@ -6,6 +37,7 @@ import { createAuditLog } from "../services/audit";
 import { sendRegistrationEmail } from "../services/email";
 import { pool } from "../db/client";
 import { signAuthToken } from "../utils/jwt";
+import { signRefreshToken } from "../utils/refreshToken";
 import { hashPassword, verifyPassword } from "../utils/password";
 
 const optionalTextField = (maxLength: number) => z.string().trim().max(maxLength).optional();
@@ -165,7 +197,13 @@ authRouter.post("/register", async (req, res) => {
   );
 
   const user = mapUser(inserted.rows[0] as UserRow);
+
   const token = signAuthToken({
+    id: user.id,
+    email: user.email,
+    role: user.role
+  });
+  const refreshToken = signRefreshToken({
     id: user.id,
     email: user.email,
     role: user.role
@@ -193,7 +231,7 @@ authRouter.post("/register", async (req, res) => {
     console.error("Failed to send registration email", emailError);
   }
 
-  res.status(201).json({ user, token });
+  res.status(201).json({ user, token, refreshToken });
 });
 
 authRouter.post("/login", async (req, res) => {
@@ -229,7 +267,13 @@ authRouter.post("/login", async (req, res) => {
     return;
   }
 
+
   const token = signAuthToken({
+    id: user.id,
+    email: user.email,
+    role: user.role
+  });
+  const refreshToken = signRefreshToken({
     id: user.id,
     email: user.email,
     role: user.role
@@ -245,6 +289,7 @@ authRouter.post("/login", async (req, res) => {
 
   res.json({
     token,
+    refreshToken,
     user: mapUser(user)
   });
 });
