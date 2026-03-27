@@ -41,6 +41,7 @@ const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
 const zod_1 = require("zod");
 const auth_1 = require("../middleware/auth");
+const roles_1 = require("../types/roles");
 const audit_1 = require("../services/audit");
 const client_1 = require("../db/client");
 const securityGroup_1 = require("../services/securityGroup");
@@ -64,7 +65,7 @@ const eventSchema = zod_1.z.object({
 const assignParticipantsSchema = zod_1.z.object({
     eventId: zod_1.z.string().uuid(),
     userIds: zod_1.z.array(zod_1.z.string().uuid()),
-    role: zod_1.z.enum(["student", "trainer", "admin"])
+    role: zod_1.z.enum(roles_1.ROLES)
 });
 // Event Management
 exports.adminRouter.post("/events", async (req, res) => {
@@ -973,7 +974,7 @@ exports.adminRouter.post("/batches/:batchId/sync-program-courses", async (req, r
 // ── Notifications ────────────────────────────────────────────────────────────
 const notificationSchema = zod_1.z.object({
     toUserId: zod_1.z.string().uuid().optional(),
-    toRole: zod_1.z.enum(["student", "trainer", "admin"]).optional(),
+    toRole: zod_1.z.enum(roles_1.ROLES).optional(),
     subject: zod_1.z.string().min(1).max(300),
     message: zod_1.z.string().min(1).max(5000)
 });

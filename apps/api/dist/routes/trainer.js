@@ -29,13 +29,21 @@ async function assertTrainerOwnsBatch(batchId, trainerId) {
     return Boolean(result.rowCount);
 }
 exports.trainerRouter.get("/batches", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`
     SELECT id, name, zoom_link, created_at
     FROM batches
     WHERE trainer_id = $1
     ORDER BY created_at DESC
-    `, [req.user.id]);
-    res.json({ batches: result.rows });
+    LIMIT $2 OFFSET $3
+    `, [req.user.id, limit, offset]);
+    res.json({ batches: result.rows, page, limit });
 });
 exports.trainerRouter.post("/batches", async (req, res) => {
     const parsed = batchSchema.safeParse(req.body);
@@ -483,14 +491,21 @@ const trainerNotifSchema = zod_1.z.object({
     batchId: zod_1.z.string().uuid().optional()
 });
 exports.trainerRouter.get("/notifications", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`SELECT n.id, n.from_user_id, n.subject, n.message, n.is_read, n.created_at,
             u.email AS from_email, u.full_name AS from_name
      FROM notifications n
      LEFT JOIN users u ON u.id = n.from_user_id
      WHERE n.to_user_id = $1 OR n.to_role = 'trainer'
      ORDER BY n.created_at DESC
-     LIMIT 100`, [req.user.id]);
-    res.json({ notifications: result.rows });
+     LIMIT $2 OFFSET $3`, [req.user.id, limit, offset]);
+    res.json({ notifications: result.rows, page, limit });
 });
 exports.trainerRouter.post("/notifications", async (req, res) => {
     const parsed = trainerNotifSchema.safeParse(req.body);

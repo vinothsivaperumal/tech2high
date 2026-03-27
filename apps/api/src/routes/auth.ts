@@ -1,5 +1,6 @@
-// Refresh token endpoint
+authRouter.post("/refresh", async (req, res) => {
 import { verifyRefreshToken } from "../utils/refreshToken";
+// ...existing code...
 
 authRouter.post("/refresh", async (req, res) => {
   const { refreshToken } = req.body;
@@ -416,4 +417,7 @@ authRouter.patch("/me", requireAuth, async (req, res) => {
   });
 
   res.json({ user, token });
-});
+  });
+
+  // Export the router
+  export default authRouter;

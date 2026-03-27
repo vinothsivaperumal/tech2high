@@ -1,8 +1,11 @@
 import jwt from "jsonwebtoken";
 
 
-import { ROLES, UserRole } from "../types/roles";
 
+import { ROLES, UserRole } from "../types/roles";
+import { env } from "../config/env";
+
+export interface AuthTokenPayload {
   id: string;
   email: string;
   role: UserRole;
