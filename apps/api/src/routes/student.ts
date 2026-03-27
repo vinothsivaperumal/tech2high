@@ -1,5 +1,17 @@
 import { Router } from "express";
+import multer from "multer";
+import { z } from "zod";
+import {
+  Document, Packer, Paragraph, TextRun, HeadingLevel,
+  AlignmentType, BorderStyle, TabStopType, TabStopPosition,
+} from "docx";
+import { requireAuth, requireRole } from "../middleware/auth";
+import { createAuditLog } from "../services/audit";
+import { pool } from "../db/client";
+import { uploadBufferToS3, getPresignedUrl } from "../services/s3";
+import { sendNotificationEmail } from "../services/email";
 import * as eventService from "../services/event";
+
 export const studentRouter = Router();
 studentRouter.use(requireAuth, requireRole(["student"]));
 // Calendar: List events assigned to the student

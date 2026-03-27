@@ -1,4 +1,14 @@
 {
+  "/_not-found/page": "app/_not-found/page.js",
+  "/admin/login/page": "app/admin/login/page.js",
+  "/admin/calendar/page": "app/admin/calendar/page.js",
+  "/admin/page": "app/admin/page.js",
+  "/page": "app/page.js",
+  "/student/page": "app/student/page.js",
+  "/student/login/page": "app/student/login/page.js",
+  "/login/page": "app/login/page.js",
+  "/trainer/calendar/page": "app/trainer/calendar/page.js",
   "/trainer/login/page": "app/trainer/login/page.js",
-  "/admin/page": "app/admin/page.js"
+  "/student/calendar/page": "app/student/calendar/page.js",
+  "/trainer/page": "app/trainer/page.js"
 }

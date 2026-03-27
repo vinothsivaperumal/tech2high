@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
-import { verifyAuthToken, UserRole } from "../utils/jwt";
+import { verifyAuthToken } from "../utils/jwt";
+import { UserRole } from "../types/roles";
 
 export function requireAuth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;

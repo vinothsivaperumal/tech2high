@@ -13,6 +13,7 @@
     "build": "npm run build --workspace apps/api && npm run build --workspace apps/web",
     "start:api": "npm run start --workspace apps/api",
     "start:web": "npm run start --workspace apps/web",
+    "start": "npm run start:api & npm run start:web",
     "migrate": "npm run migrate --workspace apps/api",
     "deploy:sql:manual": "./deploy/scripts/deploy-sql.sh",
     "deploy:ec2:bootstrap": "./deploy/scripts/ec2-bootstrap.sh",

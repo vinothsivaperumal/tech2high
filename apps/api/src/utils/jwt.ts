@@ -1,8 +1,9 @@
 import jwt from "jsonwebtoken";
 
-import { env } from "../config/env";
 
-export type UserRole = "student" | "trainer" | "admin";
+
+import { ROLES, UserRole } from "../types/roles";
+import { env } from "../config/env";
 
 export interface AuthTokenPayload {
   id: string;

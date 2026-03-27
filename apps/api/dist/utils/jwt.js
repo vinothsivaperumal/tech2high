@@ -7,8 +7,9 @@ exports.signAuthToken = signAuthToken;
 exports.verifyAuthToken = verifyAuthToken;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const env_1 = require("../config/env");
+// Access token: 1 hour expiry (security best practice)
 function signAuthToken(payload) {
-    return jsonwebtoken_1.default.sign(payload, env_1.env.JWT_SECRET, { expiresIn: "12h" });
+    return jsonwebtoken_1.default.sign(payload, env_1.env.JWT_SECRET, { expiresIn: "1h" });
 }
 function verifyAuthToken(token) {
     const decoded = jsonwebtoken_1.default.verify(token, env_1.env.JWT_SECRET);

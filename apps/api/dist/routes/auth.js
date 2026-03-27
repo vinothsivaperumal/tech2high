@@ -8,6 +8,8 @@ const audit_1 = require("../services/audit");
 const email_1 = require("../services/email");
 const client_1 = require("../db/client");
 const jwt_1 = require("../utils/jwt");
+const roles_1 = require("../types/roles");
+const refreshToken_1 = require("../utils/refreshToken");
 const password_1 = require("../utils/password");
 const optionalTextField = (maxLength) => zod_1.z.string().trim().max(maxLength).optional();
 const optionalPhoneField = zod_1.z
@@ -31,7 +33,7 @@ const registerSchema = zod_1.z
     .object({
     email: zod_1.z.string().email(),
     password: zod_1.z.string().min(8),
-    role: zod_1.z.enum(["student", "trainer", "admin"]).default("student")
+    role: zod_1.z.enum(roles_1.ROLES).default("student")
 })
     .merge(registerProfileSchema);
 const updateProfileSchema = zod_1.z
@@ -137,6 +139,11 @@ exports.authRouter.post("/register", async (req, res) => {
         email: user.email,
         role: user.role
     });
+    const refreshToken = (0, refreshToken_1.signRefreshToken)({
+        id: user.id,
+        email: user.email,
+        role: user.role
+    });
     await (0, audit_1.createAuditLog)({
         actorUserId: user.id,
         action: "auth.register",
@@ -157,7 +164,7 @@ exports.authRouter.post("/register", async (req, res) => {
     catch (emailError) {
         console.error("Failed to send registration email", emailError);
     }
-    res.status(201).json({ user, token });
+    res.status(201).json({ user, token, refreshToken });
 });
 exports.authRouter.post("/login", async (req, res) => {
     const parsed = loginSchema.safeParse(req.body);
@@ -187,6 +194,11 @@ exports.authRouter.post("/login", async (req, res) => {
         email: user.email,
         role: user.role
     });
+    const refreshToken = (0, refreshToken_1.signRefreshToken)({
+        id: user.id,
+        email: user.email,
+        role: user.role
+    });
     await (0, audit_1.createAuditLog)({
         actorUserId: user.id,
         action: "auth.login",
@@ -196,6 +208,7 @@ exports.authRouter.post("/login", async (req, res) => {
     });
     res.json({
         token,
+        refreshToken,
         user: mapUser(user)
     });
 });

@@ -38,6 +38,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.studentRouter = void 0;
 const express_1 = require("express");
+const multer_1 = __importDefault(require("multer"));
+const zod_1 = require("zod");
+const docx_1 = require("docx");
+const auth_1 = require("../middleware/auth");
+const audit_1 = require("../services/audit");
+const client_1 = require("../db/client");
+const s3_1 = require("../services/s3");
+const email_1 = require("../services/email");
 const eventService = __importStar(require("../services/event"));
 exports.studentRouter = (0, express_1.Router)();
 exports.studentRouter.use(auth_1.requireAuth, (0, auth_1.requireRole)(["student"]));
@@ -50,14 +58,6 @@ exports.studentRouter.get("/events", async (req, res) => {
     const events = await eventService.listUserEvents(req.user.id);
     res.json({ events });
 });
-const multer_1 = __importDefault(require("multer"));
-const zod_1 = require("zod");
-const docx_1 = require("docx");
-const auth_1 = require("../middleware/auth");
-const audit_1 = require("../services/audit");
-const client_1 = require("../db/client");
-const s3_1 = require("../services/s3");
-const email_1 = require("../services/email");
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage(), limits: { fileSize: 20 * 1024 * 1024 } });
 const ipRequestSchema = zod_1.z.object({
     requestedIp: zod_1.z.string().regex(/^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/),
@@ -71,16 +71,31 @@ function hasAllowedExtension(fileName) {
     return extension ? allowedAssignmentExtensions.includes(extension) : false;
 }
 exports.studentRouter.get("/batches", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`SELECT b.id, b.name, b.zoom_link, b.created_at,
             u.full_name AS trainer_name, u.email AS trainer_email
      FROM batches b
      INNER JOIN batch_students bs ON bs.batch_id = b.id
      LEFT JOIN users u ON u.id = b.trainer_id
      WHERE bs.student_id = $1 AND b.is_active = TRUE
-     ORDER BY b.created_at DESC`, [req.user.id]);
-    res.json({ batches: result.rows });
+     ORDER BY b.created_at DESC
+     LIMIT $2 OFFSET $3`, [req.user.id, limit, offset]);
+    res.json({ batches: result.rows, page, limit });
 });
 exports.studentRouter.get("/videos", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`
     SELECT v.id, v.title, v.description, v.s3_key, v.created_at, b.name AS batch_name
     FROM videos v
@@ -88,10 +103,18 @@ exports.studentRouter.get("/videos", async (req, res) => {
     INNER JOIN batch_students bs ON bs.batch_id = b.id
     WHERE bs.student_id = $1
     ORDER BY v.created_at DESC
-    `, [req.user.id]);
-    res.json({ videos: result.rows });
+    LIMIT $2 OFFSET $3
+    `, [req.user.id, limit, offset]);
+    res.json({ videos: result.rows, page, limit });
 });
 exports.studentRouter.get("/assignments", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`
     SELECT a.id, a.title, a.instructions, a.due_at, a.created_at, b.name AS batch_name
     FROM assignments a
@@ -99,8 +122,9 @@ exports.studentRouter.get("/assignments", async (req, res) => {
     INNER JOIN batch_students bs ON bs.batch_id = b.id
     WHERE bs.student_id = $1
     ORDER BY a.created_at DESC
-    `, [req.user.id]);
-    res.json({ assignments: result.rows });
+    LIMIT $2 OFFSET $3
+    `, [req.user.id, limit, offset]);
+    res.json({ assignments: result.rows, page, limit });
 });
 exports.studentRouter.post("/assignments/:assignmentId/submissions", upload.single("file"), async (req, res) => {
     const assignmentId = req.params.assignmentId;
@@ -177,14 +201,21 @@ exports.studentRouter.get("/ip-requests", async (req, res) => {
     res.json({ requests: result.rows });
 });
 exports.studentRouter.get("/courses", async (req, res) => {
-    // Return courses assigned to the student's batch(es)
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const courses = await client_1.pool.query(`SELECT DISTINCT c.id, c.title, c.description, c.created_at, bc.sort_order
      FROM courses c
      INNER JOIN batch_courses bc ON bc.course_id = c.id
      INNER JOIN batch_students bs ON bs.batch_id = bc.batch_id
      WHERE bs.student_id = $1 AND c.is_active = TRUE
-     ORDER BY bc.sort_order, c.created_at DESC`, [req.user.id]);
-    res.json({ courses: courses.rows });
+     ORDER BY bc.sort_order, c.created_at DESC
+     LIMIT $2 OFFSET $3`, [req.user.id, limit, offset]);
+    res.json({ courses: courses.rows, page, limit });
 });
 exports.studentRouter.get("/courses/:courseId/topics", async (req, res) => {
     const { courseId } = req.params;
@@ -235,14 +266,21 @@ const studentNotifSchema = zod_1.z.object({
     message: zod_1.z.string().min(1).max(5000)
 });
 exports.studentRouter.get("/notifications", async (req, res) => {
+    let page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 20;
+    if (page < 1)
+        page = 1;
+    if (limit < 1 || limit > 100)
+        limit = 20;
+    const offset = (page - 1) * limit;
     const result = await client_1.pool.query(`SELECT n.id, n.from_user_id, n.subject, n.message, n.is_read, n.created_at,
             u.email AS from_email, u.full_name AS from_name
      FROM notifications n
      LEFT JOIN users u ON u.id = n.from_user_id
      WHERE n.to_user_id = $1 OR n.to_role = 'student'
      ORDER BY n.created_at DESC
-     LIMIT 100`, [req.user.id]);
-    res.json({ notifications: result.rows });
+     LIMIT $2 OFFSET $3`, [req.user.id, limit, offset]);
+    res.json({ notifications: result.rows, page, limit });
 });
 exports.studentRouter.post("/notifications", async (req, res) => {
     const parsed = studentNotifSchema.safeParse(req.body);

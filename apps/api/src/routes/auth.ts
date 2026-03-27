@@ -1,44 +1,14 @@
-// Refresh token endpoint
-import { verifyRefreshToken } from "../utils/refreshToken";
-
-authRouter.post("/refresh", async (req, res) => {
-  const { refreshToken } = req.body;
-  if (!refreshToken || typeof refreshToken !== "string") {
-    res.status(400).json({ message: "Missing refresh token" });
-    return;
-  }
-  try {
-    const payload = verifyRefreshToken(refreshToken);
-    // Optionally: check user still exists and is active
-    const result = await pool.query(
-      `SELECT ${userSelectFields} FROM users WHERE id = $1`,
-      [payload.id]
-    );
-    if (!result.rowCount) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-    const user = mapUser(result.rows[0] as UserRow);
-    const token = signAuthToken({
-      id: user.id,
-      email: user.email,
-      role: user.role
-    });
-    res.json({ token, user });
-  } catch (err) {
-    res.status(401).json({ message: "Invalid or expired refresh token" });
-  }
-});
 import { Router } from "express";
 import { z } from "zod";
-
 import { requireAuth } from "../middleware/auth";
 import { createAuditLog } from "../services/audit";
 import { sendRegistrationEmail } from "../services/email";
 import { pool } from "../db/client";
 import { signAuthToken } from "../utils/jwt";
+import { ROLES, UserRole } from "../types/roles";
 import { signRefreshToken } from "../utils/refreshToken";
 import { hashPassword, verifyPassword } from "../utils/password";
+
 
 const optionalTextField = (maxLength: number) => z.string().trim().max(maxLength).optional();
 
@@ -63,9 +33,9 @@ const registerProfileSchema = z.object({
 
 const registerSchema = z
   .object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  role: z.enum(["student", "trainer", "admin"]).default("student")
+    email: z.string().email(),
+    password: z.string().min(8),
+    role: z.enum(ROLES).default("student")
   })
   .merge(registerProfileSchema);
 
@@ -107,7 +77,7 @@ const userSelectFields = `
 interface UserRow {
   id: string;
   email: string;
-  role: "student" | "trainer" | "admin";
+  role: UserRole;
   full_name: string | null;
   phone: string | null;
   city: string | null;
